@@ -4,13 +4,13 @@ import { getDatabase } from 'firebase/database'
 import { getStorage } from 'firebase/storage'
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyDyqvypm634-lTLKshBjZufknBxgGyRDq4',
-  authDomain: 'anchateam.firebaseapp.com',
-  databaseURL: 'https://anchateam-default-rtdb.firebaseio.com',
-  projectId: 'anchateam',
-  storageBucket: 'anchateam.appspot.com',
-  messagingSenderId: '631644109230',
-  appId: '1:631644109230:web:d7e29d1216b92eba35f03f'
+  apiKey: 'YOUR_FIREBASE_API_KEY',
+  authDomain: 'your-project.firebaseapp.com',
+  databaseURL: 'https://your-project-default-rtdb.firebaseio.com',
+  projectId: 'your-project',
+  storageBucket: 'your-project.appspot.com',
+  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
+  appId: 'YOUR_APP_ID'
 }
 
 const app = initializeApp(firebaseConfig)
