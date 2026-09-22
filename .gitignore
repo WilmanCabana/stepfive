@@ -903,3 +903,6 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,visualstudiocode,visualstudio,node,dbeaver,git,react,reactnative,angular,astro,nextjs,yarn,firebase,linux,svelte,dotenv
+# Ignore npm lockfile (project uses pnpm)
+package-lock.json
+
