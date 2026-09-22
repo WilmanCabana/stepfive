@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import API from '../config/api.config.mjs'
 import Notify from '../lib/notify.mjs'
-import Service from '../services/service/Service.mjs'
 
 const AuthContext = createContext()
 
@@ -48,7 +47,10 @@ export const AuthProvider = ({ children }) => {
 
   const signUp = async (userData) => {
     try {
-      const image = await Service.uploadFile(`/examplars/profiles/images/${new Date().getTime()}`, userData.image)
+      // Firebase Storage está deshabilitado (requiere plan Blaze de pago).
+      // Se omite la subida de imagen por ahora; se migrará a Supabase Storage.
+      const image = null
+
       const result = await fetch(API.AUTH.ENDPOINTS.SIGNUP, {
         method: 'POST',
         headers: {
