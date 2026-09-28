@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { Fragment, useState, useMemo } from 'react'
 import './Table.css'
 import Button from '../Button/Button'
 import Icon from '../Icon/Icon'
@@ -247,7 +247,7 @@ function Table({
                                 const isChecked = selectedItems.includes(object.id)
 
                                 return (
-                                    <React.Fragment key={`${id}_${object.id}`}>
+                                    <Fragment key={`${id}_${object.id}`}>
                                         <tr className={`lx-c-table-row ${isChecked ? 'selected' : ''}`}
                                             style={{ '--lx-c-table-row-index': index }}
                                             id={`${id}_${object.id}`}
@@ -291,7 +291,7 @@ function Table({
                                                 </td>
                                             </tr>
                                         )}
-                                    </React.Fragment>
+                                    </Fragment>
                                 )
                             })
                         ) : (

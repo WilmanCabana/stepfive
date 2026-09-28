@@ -31,6 +31,15 @@ export const PERMISSIONS = {
         CREATE: 'CreateUsers',
         UPDATE: 'UpdateUsers',
         DELETE: 'DeleteUsers'
+    },
+
+    SPACE: {
+        READ: 'ReadSpaces',
+        CREATE: 'CreateSpaces',
+        UPDATE: 'UpdateSpaces',
+        DELETE: 'DeleteSpaces',
+        VERIFY: 'VerifySpaces',
+        ACCESS: 'AccessSpaces'
     }
 
 }
