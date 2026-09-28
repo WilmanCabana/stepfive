@@ -1,0 +1,69 @@
+.lx-t-space-recreationals-actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .25rem;
+    white-space: nowrap;
+}
+
+.lx-c-space-recreational-table {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+.lx-c-space-recreational-table > .lx-c-table-header {
+    justify-content: flex-start;
+    gap: .5rem;
+    color: var(--lx-color-text);
+    font-weight: 600;
+}
+
+.lx-c-space-recreational-table > .lx-c-table-header > span:first-child {
+    color: var(--lx-color-accent);
+}
+
+.lx-t-space-recreational-name {
+    min-width: 120px;
+    color: var(--lx-color-text);
+    font-weight: 600;
+}
+
+.lx-t-space-recreational-price {
+    color: var(--lx-color-text);
+    font-weight: 600;
+}
+
+.lx-p-spaces-table .lx-c-table-container {
+    background: var(--lx-color-background-secondary);
+    border: var(--lx-primary-border);
+}
+
+.lx-p-spaces-table .lx-c-table-search-content,
+.lx-p-spaces-table .lx-c-table-filter-dropdown {
+    background: var(--lx-color-background-primary);
+    border-color: var(--lx-color-border);
+}
+
+.lx-p-spaces-table .lx-c-table-search-content .material-symbols-rounded {
+    color: var(--lx-color-text-soft);
+}
+
+.lx-p-spaces-table .lx-c-table thead th {
+    color: var(--lx-color-text-soft);
+}
+
+.lx-p-spaces-table .lx-c-table tbody td {
+    color: var(--lx-color-text);
+}
+
+.lx-p-spaces-table .lx-c-table-row {
+    background: var(--lx-color-background-primary);
+}
+
+.lx-p-spaces-table .lx-c-table-row:hover,
+.lx-p-spaces-table .lx-c-table-row:has(+ .lx-c-table-edit-row) {
+    background: var(--lx-color-background-ternary);
+}
