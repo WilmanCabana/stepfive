@@ -1,6 +1,7 @@
 import Dashboard from '../pages/Dashboard/Dashboard'
 import Users from '../pages/Users/Users'
 import Authorization from '../pages/Authorization/Authorization'
+import SpaceRecreationals from '../pages/Spaces/SpaceRecreationals'
 
 export const AUTHORITIES = {
   PANEL: {
@@ -43,6 +44,18 @@ export const MENU = [
     element: <Users />,
     authorities: {
       permissions: ['AccessUsers']
+    },
+    items: []
+  },
+  {
+    label: 'Mis espacios recreativos',
+    icon: 'sports_soccer',
+    description: 'Gestión de espacios recreativos',
+    to: 'space-recreationals',
+    path: 'space-recreationals/:spaceRecreationalId?',
+    element: <SpaceRecreationals />,
+    authorities: {
+      permissions: ['AccessSpaces'] // AccessSpacesReacreationals
     },
     items: []
   }
