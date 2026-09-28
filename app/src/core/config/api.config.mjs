@@ -36,6 +36,10 @@ export const API = {
         USERS: 'users',
         AUTHORIZE: 'authorize',
         DISAUTHORIZE: 'disauthorize',
+    }),
+    SPACE_RECREATIONAL: new EndpointGroup(`${URL_BASE}/spaces`, {
+        SPACE_RECREATIONALS: '',
+        MY_SPACE_RECREATIONALS: 'me'
     })
 }
 

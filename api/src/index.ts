@@ -7,6 +7,7 @@ import { APP_NAME, HOST_NAME, VERSIONING, PORT } from './core/config/api.config.
 import ErrorMiddleware from './core/middlewares/Error.middleware.js'
 import CoreRouter from './core/router/Core.router.js'
 import { Database } from './core/orm/database/Database.js'
+import './spaces/entities/SpaceRecreational.entity.js'
 
 dotenv.config()
 

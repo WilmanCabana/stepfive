@@ -1,0 +1,26 @@
+.lx-space-verification {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: .2rem .55rem;
+    border: var(--lx-primary-border);
+    border-radius: var(--lx-border-radius-full);
+    font-size: .75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.lx-space-verification-pending {
+    background: var(--lx-color-warning-dimed);
+    color: var(--lx-color-warning);
+}
+
+.lx-space-verification-approved {
+    background: var(--lx-color-success-dimed);
+    color: var(--lx-color-success);
+}
+
+.lx-space-verification-rejected {
+    background: var(--lx-color-danger-dimed);
+    color: var(--lx-color-danger);
+}

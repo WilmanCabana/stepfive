@@ -1,0 +1,5 @@
+.lx-space-condition { display: inline-flex; align-items: center; padding: .2rem .5rem; border: var(--lx-primary-border); border-radius: var(--lx-border-radius-full); font-size: .75rem; white-space: nowrap; background: var(--lx-color-background-ternary); color: var(--lx-color-text); }
+.lx-space-condition-new { background: var(--lx-color-success-dimed); color: var(--lx-color-success); }
+.lx-space-condition-good { background: var(--lx-color-info-dimed); color: var(--lx-color-info); }
+.lx-space-condition-regular { background: var(--lx-color-warning-dimed); color: var(--lx-color-warning); }
+.lx-space-condition-needs_maintenance { background: var(--lx-color-danger-dimed); color: var(--lx-color-danger); }
