@@ -33,12 +33,12 @@ const DetailSection = ({ icon, title, children, className = '' }) => (
     </section>
 )
 
-const FeatureList = ({ items }) => {
-    const available = items.filter(([, enabled]) => enabled === true)
-    if (!available.length) return null
+const FeatureList = ({ items, showUnavailable = false }) => {
+    const visibleItems = items.filter(([, enabled]) => enabled === true || (showUnavailable && typeof enabled === 'boolean'))
+    if (!visibleItems.length) return null
     return <div className='lx-c-space-recreational-detail-features'>
-        {available.map(([label]) => <span className='lx-c-space-recreational-detail-feature' key={label}>
-            <Icon name='check_circle' />{label}
+        {visibleItems.map(([label, enabled]) => <span className={`lx-c-space-recreational-detail-feature${enabled ? '' : ' --unavailable'}`} key={label}>
+            <Icon name={enabled ? 'check_circle' : 'cancel'} />{showUnavailable ? `${label}: ${enabled ? 'Sí' : 'No'}` : label}
         </span>)}
     </div>
 }
@@ -71,10 +71,10 @@ const conditionLabels = {
     needs_maintenance: 'Mantenimiento'
 }
 
-const SpaceRecreationalDetail = ({ space, onEdit, onDelete, onVerified, onClose, canVerify = false }) => {
+const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerified, onClose, onReserve, canVerify = false }) => {
     if (!space) return null
     const hours = parseStoredValue(space.openingHours) || {}
-    const paymentMethods = parseStoredValue(space.paymentMethods) || []
+    const paymentMethods = parseStoredValue(space.paymentMethods)
     const gallery = parseStoredValue(space.gallery) || []
     const galleryImages = Array.isArray(gallery) ? gallery.filter(isPresent) : []
     const typeLabel = space.type === 'event_hall' ? 'Salón de eventos' : 'Cancha sintética'
@@ -89,15 +89,21 @@ const SpaceRecreationalDetail = ({ space, onEdit, onDelete, onVerified, onClose,
     const instagramUrl = socialUrl('instagram', space.instagram)
     const facebookUrl = socialUrl('facebook', space.facebook)
     const fieldType = SPACE.OPTIONS.FIELD_TYPES.find(option => option.value === space.fieldType)?.key || space.fieldType
-    const paymentLabels = Array.isArray(paymentMethods)
-        ? paymentMethods.map(method => SPACE.OPTIONS.PAYMENT_METHODS.find(option => option.value === method)?.key || method).filter(isPresent)
-        : []
+    const paymentLabels = paymentMethods === 'pse' || (Array.isArray(paymentMethods) && paymentMethods.includes('pse'))
+        ? ['PSE']
+        : Array.isArray(paymentMethods) ? paymentMethods : []
     const createdAt = isPresent(space.createdAt) ? new Date(space.createdAt).toLocaleString('es-CO') : null
     const updatedAt = isPresent(space.updatedAt) ? new Date(space.updatedAt).toLocaleString('es-CO') : null
     const priceLabel = space.type === 'event_hall' ? 'Precio por bloque' : 'Precio por hora'
     const reservationLabel = space.reservationMode === 'block'
         ? `Bloques de ${Number(space.reservationUnitMinutes) / 60} horas`
         : 'Por hora'
+    const reservationDuration = reservation
+        ? Math.max(0, Math.round((new Date(reservation.endAt).getTime() - new Date(reservation.startAt).getTime()) / 60_000))
+        : 0
+    const durationLabel = reservationDuration >= 60
+        ? `${Math.floor(reservationDuration / 60)} h${reservationDuration % 60 ? ` ${reservationDuration % 60} min` : ''}`
+        : `${reservationDuration} min`
 
     return <div className='lx-c-space-recreational-detail'>
         <div className='lx-c-space-recreational-detail-header'>
@@ -109,9 +115,23 @@ const SpaceRecreationalDetail = ({ space, onEdit, onDelete, onVerified, onClose,
                     {isPresent(space.verificationStatus) && <SpaceVerificationTag status={space.verificationStatus} />}
                 </div>
             </div>
-            <Button icon variant='plain' onClick={onClose} aria-label='Cerrar detalle'><Icon name='close' /></Button>
+            <div className='lx-c-space-recreational-detail-header-actions'>
+                {onReserve && <Button onClick={onReserve}><Icon name='event_available' />Reservar</Button>}
+                <Button icon variant='plain' onClick={onClose} aria-label='Cerrar detalle'><Icon name='close' /></Button>
+            </div>
         </div>
         <div className='lx-c-space-recreational-detail-sections'>
+            {reservation && <DetailSection icon='event_available' title='Datos de la reserva'>
+                <div className='lx-c-space-recreational-detail-grid'>
+                    <DetailField label='Inicio' value={new Date(reservation.startAt).toLocaleString('es-CO', { timeZone: 'America/Bogota', dateStyle: 'long', timeStyle: 'short' })} />
+                    <DetailField label='Fin' value={new Date(reservation.endAt).toLocaleString('es-CO', { timeZone: 'America/Bogota', dateStyle: 'long', timeStyle: 'short' })} />
+                    <DetailField label='Duración' value={durationLabel} />
+                    <DetailField label='Precio total' value={`$${Number(reservation.totalPrice).toLocaleString('es-CO')}`} />
+                    <DetailField label='Estado de la reserva' value={{ pending_payment: 'Pendiente de pago', paid: 'Pagada', cancelled: 'Cancelada', completed: 'Completada' }[reservation.status] || reservation.status} />
+                    <DetailField label='Referencia de pago' value={reservation.paymentReference || 'No registrada'} />
+                    <DetailField label='Notas' value={reservation.notes || 'Sin notas'} />
+                </div>
+            </DetailSection>}
             <DetailSection icon='info' title='Información general'>
                 <div className='lx-c-space-recreational-detail-grid'>
                     <DetailField label='Nombre' value={space.name} />
@@ -144,32 +164,30 @@ const SpaceRecreationalDetail = ({ space, onEdit, onDelete, onVerified, onClose,
 
             <DetailSection icon='groups' title='Capacidad y características'>
                 <div className='lx-c-space-recreational-detail-grid'>
-                    <DetailField label='Capacidad máxima' value={space.maxCapacity} />
+                    <DetailField label={space.type === 'event_hall' ? 'Capacidad de pie' : 'Capacidad máxima'} value={space.maxCapacity} />
                     <DetailField label='Área total' value={isPresent(space.totalArea) ? `${space.totalArea} m²` : null} />
                     <DetailField label='Baños' value={space.bathrooms} />
                     {typeof space.hasParking === 'boolean' && <DetailField label='Parqueadero' value={space.hasParking
                         ? `Sí${isPresent(space.parkingCapacity) ? ` · ${space.parkingCapacity} cupos` : ''}`
                         : 'No'} />}
                 </div>
-                <FeatureList items={[
-                    ['Cocina', space.hasKitchen], ['Vestidores', space.hasDressingRooms], ['Duchas', space.hasShowers],
+                <FeatureList showUnavailable items={[
+                    ['Cocina', space.hasKitchen], ['Camerinos', space.hasDressingRooms], ['Duchas', space.hasShowers],
                     ['Iluminación', space.hasLighting], ['Sonido', space.hasSound], ['Tarima', space.hasStage],
-                    ['WiFi', space.hasWifi], ['Planta eléctrica', space.hasGenerator], ['Accesible', space.isAccessible]
+                    ['WiFi', space.hasWifi], ['Planta eléctrica', space.hasGenerator], ['Accesible', space.isAccessible],
+                    ...(space.type === 'synthetic_field' ? [['Mallas', space.hasNets], ['Balones', space.hasBalls], ['Petos', space.hasVests]] : []),
+                    ['Permite alcohol', space.allowsAlcohol], ['Permite alimentos', space.allowsFood], ['Permite música', space.allowsMusic]
                 ]} />
             </DetailSection>
 
             <DetailSection icon='payments' title='Servicios y precios'>
                 <div className='lx-c-space-recreational-detail-grid'>
                     <DetailField label={priceLabel} value={isPresent(space.pricePerHour) ? `$${Number(space.pricePerHour).toLocaleString('es-CO')}` : null} />
-                    {space.requiresDeposit === true && <DetailField label='Depósito requerido' value={isPresent(space.depositAmount) ? `$${Number(space.depositAmount).toLocaleString('es-CO')}` : 'Sí'} />}
                     <DetailField label='Modalidad de reserva' value={reservationLabel} />
                     {isPresent(space.minReservationUnits) && <DetailField label='Reserva mínima' value={space.minReservationUnits} />}
                     {isPresent(space.maxReservationUnits) && <DetailField label='Reserva máxima' value={space.maxReservationUnits} />}
-                    {paymentLabels.length > 0 && <DetailField label='Métodos de pago' value={paymentLabels.join(', ')} />}
+                    <DetailField label='Métodos de pago' value={paymentLabels.length > 0 ? paymentLabels.join(', ') : 'No registrados'} />
                 </div>
-                <FeatureList items={[
-                    ['Permite alcohol', space.allowsAlcohol], ['Permite alimentos', space.allowsFood], ['Permite música', space.allowsMusic]
-                ]} />
             </DetailSection>
 
             <DetailSection icon='schedule' title='Horarios'>
@@ -199,15 +217,13 @@ const SpaceRecreationalDetail = ({ space, onEdit, onDelete, onVerified, onClose,
                     <DetailField label='Tipo de cancha' value={fieldType} />
                     <DetailField label='Dimensiones' value={space.fieldDimensions} />
                 </div>
-                <FeatureList items={[['Mallas', space.hasNets], ['Balones', space.hasBalls], ['Petos', space.hasVests]]} />
             </DetailSection>}
 
             {space.type === 'event_hall' && <DetailSection icon='celebration' title='Específicos de salón'>
                 <div className='lx-c-space-recreational-detail-grid'>
                     <DetailField label='Capacidad sentados' value={space.seatedCapacity} />
-                    <DetailField label='Capacidad de pie' value={space.standingCapacity} />
                 </div>
-                <FeatureList items={[
+                <FeatureList showUnavailable items={[
                     ['Pista de baile', space.hasDanceFloor], ['Mobiliario', space.hasFurniture], ['Área VIP', space.hasVIPArea]
                 ]} />
             </DetailSection>}

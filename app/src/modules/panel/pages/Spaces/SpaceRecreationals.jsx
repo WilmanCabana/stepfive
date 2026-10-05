@@ -15,6 +15,7 @@ import SpaceRecreationalTable from '../../components/SpaceRecreationalTable/Spac
 import SpaceRecreationalForm from '../../components/SpaceRecreationalForm/SpaceRecreationalForm.jsx'
 import SpaceRecreationalDetail from '../../components/SpaceRecreationalDetail/SpaceRecreationalDetail.jsx'
 import SpaceRecreationalDeleteForm from '../../components/SpaceRecreationalDeleteForm/SpaceRecreationalDeleteForm.jsx'
+import SpaceReservations from '../../components/SpaceReservations/SpaceReservations.jsx'
 
 const SpaceRecreationals = () => {
     const { session, user, hasAuthorities } = useAuth()
@@ -58,10 +59,11 @@ const SpaceRecreationals = () => {
             {canCreate && <div className='actions'><Button onClick={() => open('form')}><Icon name='add' />Nuevo espacio</Button></div>}
         </header>
         <div className='lx-p-spaces-content'>
-            <div className='lx-p-spaces-actions'><TabGroup tabs={[<>Tarjetas <Icon name='square' /></>, <>Tabla <Icon name='table' /></>]} options={['cards', 'table']} onClick={setTab} activeIndex={tab === 'table' ? 1 : 0} /></div>
+            <div className='lx-p-spaces-actions'><TabGroup tabs={[<>Tarjetas <Icon name='square' /></>, <>Tabla <Icon name='table' /></>, <>Reservas <Icon name='calendar_month' /></>]} options={['cards', 'table', 'reservations']} onClick={setTab} activeIndex={['cards', 'table', 'reservations'].indexOf(tab)} /></div>
             <div className='lx-p-spaces-container'>
                 {tab === 'cards' && <div className='lx-p-spaces-cards'><InputSearch context='.lx-c-space-recreationals' element='.lx-space-card' /><SpaceRecreationalCards spaces={spaces} onView={item => open('detail', item)} onEdit={canUpdate ? item => open('form', item) : null} onDelete={canDelete ? remove : null} /></div>}
                 {tab === 'table' && <div className='lx-p-spaces-table'><SpaceRecreationalTable spaces={spaces} onView={item => open('detail', item)} onEdit={canUpdate ? item => open('form', item) : null} onDelete={canDelete ? remove : null} /></div>}
+                {tab === 'reservations' && <SpaceReservations />}
             </div>
         </div>
         <Footer />

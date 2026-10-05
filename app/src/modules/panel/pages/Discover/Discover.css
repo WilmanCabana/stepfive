@@ -1,0 +1,79 @@
+.lx-p-discover {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding: 1.5rem;
+    gap: 1.25rem;
+}
+
+.lx-p-discover-head {
+    display: grid;
+    gap: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: var(--lx-primary-border);
+}
+
+.lx-p-discover-head h1 {
+    margin: 0;
+    color: var(--lx-color-text);
+    font-size: 1.8rem;
+}
+
+.lx-p-discover-head p {
+    margin: 0 0 .4rem;
+    color: var(--lx-color-text-softest);
+    font-size: .9rem;
+}
+
+.lx-p-discover-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+    max-width: 900px;
+}
+
+.lx-p-discover-filters .lx-forms-input-group {
+    flex-direction: column-reverse;
+    gap: .35rem;
+}
+
+.lx-p-discover-filters .lx-forms-input-group > .lx-forms-label {
+    position: static;
+    width: 100%;
+    padding: 0 .1rem;
+    color: var(--lx-color-text);
+    font-size: .8rem;
+    font-weight: 500;
+    transform: none;
+}
+
+.lx-p-discover-filters .lx-forms-input-group > .lx-forms-input:focus ~ .lx-forms-label,
+.lx-p-discover-filters .lx-forms-input-group > .lx-forms-input:valid ~ .lx-forms-label {
+    position: static;
+    top: auto;
+    left: auto;
+    width: 100%;
+    color: var(--lx-color-text);
+    font-size: .8rem;
+    transform: none;
+}
+
+.lx-p-discover-message {
+    margin: 0;
+    color: var(--lx-color-text-soft);
+}
+
+.lx-p-discover-message.--error {
+    color: var(--lx-color-danger);
+}
+
+@media (max-width: 720px) {
+    .lx-p-discover {
+        padding: 1rem;
+    }
+
+    .lx-p-discover-filters {
+        grid-template-columns: 1fr;
+    }
+}

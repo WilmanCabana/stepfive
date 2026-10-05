@@ -1,0 +1,27 @@
+.lx-forms-input {
+	width: 100%;
+	min-width: 0;
+	padding: .65rem .75rem;
+	border: 1px solid rgba(var(--lx-inverse), .32);
+	border-radius: var(--lx-border-radius-xs);
+	background: var(--lx-color-background-primary);
+	color: var(--lx-color-text);
+	font: inherit;
+	transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.lx-forms-input:focus {
+	border-color: var(--lx-color-accent);
+	outline: none;
+	box-shadow: 0 0 0 2px var(--lx-color-accent-shadow);
+}
+
+.lx-forms-input:disabled {
+	background: var(--lx-color-background-secondary);
+	color: var(--lx-color-text-softest);
+	cursor: not-allowed;
+}
+
+.lx-forms-input-group.--error .lx-forms-input {
+	border-color: var(--lx-color-danger);
+}

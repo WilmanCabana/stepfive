@@ -76,8 +76,9 @@
 .lx-f-space-recreational-reservations,
 .lx-f-space-recreational-hours {
     min-width: 0;
-    padding: 1rem;
-    border: var(--lx-primary-border);
+    margin: 0;
+    padding: 1.25rem 1rem 1rem;
+    border: 1px solid rgba(var(--lx-inverse), .24);
     border-radius: var(--lx-border-radius-s);
     background: var(--lx-color-background-secondary);
     color: var(--lx-color-text);
@@ -86,7 +87,10 @@
 .lx-f-space-recreational-payment-methods legend,
 .lx-f-space-recreational-reservations legend,
 .lx-f-space-recreational-hours legend {
-    padding: 0 .4rem;
+    margin-left: .35rem;
+    padding: .15rem .5rem;
+    border-radius: var(--lx-border-radius-xxs);
+    background: var(--lx-color-background-secondary);
     font-weight: 600;
 }
 
@@ -117,6 +121,24 @@
     justify-content: flex-end;
     gap: .75rem;
     padding: 1rem 0;
+}
+
+.lx-f-space-recreational-image-field {
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    color: var(--lx-color-text);
+}
+
+.lx-f-space-recreational-upload-error {
+    margin: 0;
+    color: var(--lx-color-danger);
+}
+
+.lx-f-space-recreational-validation-error {
+    margin: 0;
+    color: var(--lx-color-danger);
+    font-size: .9rem;
 }
 
 @media (max-width: 640px) {

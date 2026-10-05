@@ -6,7 +6,10 @@ import SpaceConditionTag from '../SpaceConditionTag/SpaceConditionTag'
 import SpaceTypeSelector from '../SpaceTypeSelector/SpaceTypeSelector'
 import SpaceVerificationTag from '../SpaceVerificationTag/SpaceVerificationTag'
 
-const SpaceCard = ({ space, onView, onEdit, onDelete }) => (
+const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId }) => {
+    const canReserve = onReserve && space.ownerId !== currentUserId
+
+    return (
     <article className='lx-c-space-card'>
         <div className='lx-c-space-card-head'>
             <div className='lx-c-space-card-cover'>
@@ -29,14 +32,19 @@ const SpaceCard = ({ space, onView, onEdit, onDelete }) => (
                 </div>
                 <div className='lx-c-space-card-location'><Icon name='location_on' />{space.address}</div>
                 <div className='lx-c-space-card-contact'><Icon name='phone' />{space.phone}</div>
+                <div className='lx-c-space-card-price'><Icon name='payments' />${Number(space.pricePerHour || 0).toLocaleString('es-CO')} {space.type === 'event_hall' ? `/ bloque de ${Number(space.reservationUnitMinutes || 240) / 60} h` : '/ hora'}</div>
             </div>
-            <div className='lx-c-space-card-footer'>
-                <Button size='s' color='auto' width='full' onClick={() => onView(space)}><Icon name='visibility' />Detalles</Button>
+            <div className={`lx-c-space-card-footer${canReserve ? ' --reservable' : ''}`}>
+                {canReserve
+                    ? <Button size='s' color='auto' width='full' icon title='Ver detalle' ariaLabel='Ver detalle' onClick={() => onView(space)}><Icon name='visibility' /></Button>
+                    : <Button size='xs' color='auto' width='full' onClick={() => onView(space)}><Icon name='visibility' />Ver detalle</Button>}
+                {canReserve && <Button size='xs' width='full' onClick={() => onReserve(space)}><Icon name='event_available' />Reservar</Button>}
                 {onEdit && <Button size='s' color='auto' width='full' variant='bordered' icon onClick={() => onEdit(space)}><Icon name='edit' /></Button>}
                 {onDelete && <Button size='s' color='danger' variant='dimed' icon onClick={() => onDelete(space)}><Icon name='delete' /></Button>}
             </div>
         </div>
     </article>
-)
+    )
+}
 
 export default SpaceCard
