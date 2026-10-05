@@ -1,0 +1,90 @@
+.lx-p-reservation-booking {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    color: var(--lx-color-text);
+}
+
+.lx-p-reservation-booking-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: .75rem;
+    border-bottom: var(--lx-primary-border);
+}
+
+.lx-p-reservation-booking-summary span,
+.lx-p-reservation-booking-times p {
+    color: var(--lx-color-text-soft);
+}
+
+.lx-p-reservation-booking-layout {
+    display: grid;
+    grid-template-columns: minmax(240px, .8fr) minmax(280px, 1.2fr);
+    gap: 1.25rem;
+}
+
+.lx-p-reservation-booking-times h3 {
+    margin: 0 0 .75rem;
+    font-size: 1rem;
+}
+
+.lx-p-reservation-booking-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: .5rem;
+    max-height: 250px;
+    overflow: auto;
+}
+
+.lx-p-reservation-booking-slots button {
+    min-height: 2.75rem;
+    border: var(--lx-primary-border);
+    border-radius: var(--lx-border-radius-s);
+    background: var(--lx-color-background-primary);
+    color: var(--lx-color-text);
+    font: inherit;
+    cursor: pointer;
+}
+
+.lx-p-reservation-booking-slots button:hover,
+.lx-p-reservation-booking-slots button.--selected {
+    border-color: var(--lx-color-accent);
+    background: var(--lx-color-accent);
+    color: var(--lx-color-white);
+}
+
+.lx-p-reservation-booking-total {
+    display: flex;
+    justify-content: space-between;
+    padding: .75rem 0;
+    border-top: var(--lx-primary-border);
+    font-size: 1.05rem;
+}
+
+.lx-p-reservation-booking-message {
+    margin: 0;
+    color: var(--lx-color-danger);
+}
+
+.lx-p-reservation-booking-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .75rem;
+}
+
+@media (max-width: 700px) {
+    .lx-p-reservation-booking-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .lx-p-reservation-booking-summary {
+        flex-direction: column;
+        gap: .25rem;
+    }
+
+    .lx-p-reservation-booking-actions {
+        flex-direction: column-reverse;
+    }
+}
