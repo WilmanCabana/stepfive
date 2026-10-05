@@ -1,6 +1,6 @@
 # API (`/api`)
 
-Servicio backend del proyecto Stepfive Inno Project. Expone una API REST para **identidad y control de acceso (IAM)**: registro, autenticacion JWT, gestion de usuarios, roles y permisos (RBAC).
+Servicio backend del proyecto Stepfive Inno Project. Expone una API REST para **identidad y control de acceso (IAM)**, gestión de espacios recreativos y reservas.
 
 Construido con un **framework custom** sobre Express 5: decoradores para rutas (`@Controller`, `@Get`, `@Post`...), inyeccion de dependencias (`@Inject`), un ORM propio con sincronizacion automatica de esquema, y middleware de autorizacion basado en permisos.
 
@@ -214,6 +214,54 @@ Inicia sesion. Devuelve un JWT en el body y como cookie HTTP-only `accessToken`.
 | `POST`   | `/auth/revoke/permissions`        | Revocar permisos de rol         |
 | `POST`   | `/auth/check/permissions`         | Verificar permisos de rol       |
 
+## Módulos de espacios y reservas
+
+### `SpaceRecreational`
+
+Gestiona espacios de tipo `synthetic_field` (cancha sintética) y `event_hall` (salón de eventos). La entidad `SpaceRecreational` se persiste en `SpaceRecreationals`; el módulo incluye DTO, controller, service, repository y validaciones de horario, capacidad y reservas.
+
+Base: `/spaces`
+
+| Método | Endpoint | Acceso requerido |
+|--------|----------|------------------|
+| `GET` | `/spaces/discover` | Público; devuelve espacios aprobados |
+| `GET` | `/spaces/` | `ReadSpaces` |
+| `GET` | `/spaces/me` | `ReadSpaces` |
+| `GET` | `/spaces/:id` | `ReadSpaces` |
+| `POST` | `/spaces/` | `CreateSpaces` |
+| `PUT` | `/spaces/:id` | `UpdateSpaces` |
+| `DELETE` | `/spaces/:id` | `DeleteSpaces` |
+| `PATCH` | `/spaces/:id/verify` | `VerifySpaces` |
+
+Los permisos del módulo se definen en `src/spaces/constants/authorities.ts`; `init-spaces.sql` los registra en la base de datos.
+
+### `Reservation`
+
+Gestiona disponibilidad, creación y consulta de reservas. La entidad `Reservation` se persiste en `Reservations` y se relaciona con `SpaceRecreational` y `User`. PSE queda registrado como método, pero todavía no hay pasarela real: al crear la reserva, el backend la marca pagada manualmente.
+
+Base: `/reservations`
+
+| Método | Endpoint | Acceso requerido |
+|--------|----------|------------------|
+| `POST` | `/reservations/` | `CreateReservations` |
+| `GET` | `/reservations/me` | `ReadReservations` |
+| `GET` | `/reservations/spaces/me` | `ReadReservations` |
+| `GET` | `/reservations/space/:spaceId/availability` | `ReadReservations` |
+| `GET` | `/reservations/space/:spaceId` | `ReadReservations`; propietario del espacio o Admin |
+| `PATCH` | `/reservations/:id/cancel` | `CancelReservations` |
+| `PATCH` | `/reservations/:id/confirm` | `ReadReservations`; el service exige Admin |
+
+El módulo registra `ReadReservations`, `CreateReservations`, `CancelReservations`, `ReadOwnSpaceReservations` y `AccessReservations`. Las rutas usan las protecciones indicadas en la tabla; la consulta de reservas por espacio verifica además que el usuario sea el propietario o Admin.
+
+### Scripts SQL de módulos
+
+Inicia la API una vez para que el ORM sincronice las tablas. Después, ejecuta los scripts desde el SQL Editor de Supabase; si necesitas cargar los roles y permisos base, ejecuta primero `src/core/orm/database/scripts/init.sql`:
+
+1. `src/core/orm/database/scripts/init-spaces.sql` registra los permisos de espacios.
+2. `src/core/orm/database/scripts/init-reservations.sql` crea la tabla e índices de reservas, la restricción contra franjas solapadas y los permisos del módulo.
+
+La tabla `SpaceRecreationals` se sincroniza al iniciar la API mediante el ORM.
+
 ## Arquitectura
 
 ```
@@ -230,13 +278,26 @@ src/
 │   ├── router/              # CoreRouter: auto-descubre controladores en src/
 │   └── utils/               # Validator (required, email, strongPassword, etc.)
 │
-└── auth/                    # Modulo de identidad y acceso
-    ├── constants/           # Constantes de permisos y roles
-    ├── controllers/         # Auth, Authentication, Authorization, User, Role, Permission
-    ├── dtos/                # UserDTO (excluye password)
-    ├── entities/            # User, Role, Permission, BlockedToken
-    ├── repositories/        # Acceso a datos por entidad
-    └── services/            # Logica de negocio por entidad
+├── auth/                    # Modulo de identidad y acceso
+│   ├── constants/           # Constantes de permisos y roles
+│   ├── controllers/         # Auth, Authentication, Authorization, User, Role, Permission
+│   ├── dtos/                # UserDTO (excluye password)
+│   ├── entities/            # User, Role, Permission, BlockedToken
+│   ├── repositories/        # Acceso a datos por entidad
+│   └── services/            # Logica de negocio por entidad
+├── spaces/                  # Espacios recreativos
+│   ├── constants/           # Tipos, defaults y permisos
+│   ├── controllers/         # Endpoints /spaces
+│   ├── dtos/                # SpaceRecreationalDTO
+│   ├── entities/            # SpaceRecreational
+│   ├── repositories/        # Persistencia de espacios
+│   └── services/            # Gestión, Discover y validaciones
+└── reservations/            # Reservas y disponibilidad
+    ├── controllers/         # Endpoints /reservations
+    ├── dtos/                # ReservationDTO
+    ├── entities/            # Reservation
+    ├── repositories/        # Consultas de reservas
+    └── services/            # Disponibilidad y reglas de reserva
 ```
 
 ## Scripts
