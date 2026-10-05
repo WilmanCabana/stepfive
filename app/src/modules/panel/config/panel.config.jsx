@@ -1,7 +1,8 @@
-import Dashboard from '../pages/Dashboard/Dashboard'
+import Discover from '../pages/Discover/Discover'
 import Users from '../pages/Users/Users'
 import Authorization from '../pages/Authorization/Authorization'
 import SpaceRecreationals from '../pages/Spaces/SpaceRecreationals'
+import MyReservations from '../pages/MyReservations/MyReservations'
 
 export const AUTHORITIES = {
   PANEL: {
@@ -11,15 +12,27 @@ export const AUTHORITIES = {
 
 export const MENU = [
   {
-    label: 'Dashboard',
-    icon: 'dashboard',
-    description: 'Resumen general del sistema',
+    label: 'Discover',
+    icon: 'travel_explore',
+    description: 'Explora espacios recreativos disponibles',
     to: '',
     path: '',
     isBase: true,
-    element: <Dashboard />,
+    element: <Discover />,
     authorities: {
       permissions: ['AccessDashboard']
+    },
+    items: []
+  },
+  {
+    label: 'Mis reservas',
+    icon: 'event_available',
+    description: 'Consulta y administra tus reservas',
+    to: 'my-reservations',
+    path: 'my-reservations',
+    element: <MyReservations />,
+    authorities: {
+      permissions: ['ReadReservations']
     },
     items: []
   },
