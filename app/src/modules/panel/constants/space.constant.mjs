@@ -30,12 +30,10 @@ export const SPACE = {
             hasGenerator: false,
             isAccessible: false,
             pricePerHour: '',
-            paymentMethods: ['cash', 'pse'],
+            paymentMethods: 'pse',
             allowsAlcohol: false,
             allowsFood: false,
             allowsMusic: false,
-            requiresDeposit: false,
-            depositAmount: '',
             openingHours: {},
             coverImage: '',
             gallery: [],
@@ -45,7 +43,6 @@ export const SPACE = {
             hasBalls: false,
             hasVests: false,
             seatedCapacity: '',
-            standingCapacity: '',
             hasDanceFloor: false,
             hasFurniture: false,
             hasVIPArea: false,
@@ -70,7 +67,6 @@ export const SPACE = {
             { key: 'Fútbol 8', value: 'futbol8' }
         ],
         PAYMENT_METHODS: [
-            { key: 'Efectivo', value: 'cash' },
             { key: 'PSE', value: 'pse' }
         ],
         WEEK_DAYS: [
