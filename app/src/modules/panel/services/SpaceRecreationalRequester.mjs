@@ -14,6 +14,13 @@ class SpaceRecreationalRequester extends Requester {
         return result.data
     }
 
+    static async getDiscoverSpaces(filters = {}) {
+        const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value !== undefined && value !== ''))
+        const query = params.size ? `?${params.toString()}` : ''
+        const result = await super.get(`${API.SPACE_RECREATIONAL.ENDPOINTS.DISCOVER}${query}`)
+        return result.data
+    }
+
     static async getSpace(id) {
         const result = await super.get(`${API.SPACE_RECREATIONAL.ENDPOINTS.SPACE_RECREATIONALS}${id}`)
         return result.data
