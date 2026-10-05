@@ -109,12 +109,6 @@ export class SpaceRecreational {
     @Column({ type: 'boolean', nullable: false, default: false })
     allowsMusic: boolean
 
-    @Column({ type: 'boolean', nullable: false, default: false })
-    requiresDeposit: boolean
-
-    @Column({ type: 'number' })
-    depositAmount: number
-
     @Column({ type: 'text' })
     openingHours: string
 
@@ -147,9 +141,6 @@ export class SpaceRecreational {
 
     @Column({ type: 'number' })
     seatedCapacity: number
-
-    @Column({ type: 'number' })
-    standingCapacity: number
 
     @Column({ type: 'boolean', nullable: false, default: false })
     hasDanceFloor: boolean

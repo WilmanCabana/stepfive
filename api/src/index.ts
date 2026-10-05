@@ -8,6 +8,7 @@ import ErrorMiddleware from './core/middlewares/Error.middleware.js'
 import CoreRouter from './core/router/Core.router.js'
 import { Database } from './core/orm/database/Database.js'
 import './spaces/entities/SpaceRecreational.entity.js'
+import './reservations/entities/Reservation.entity.js'
 
 dotenv.config()
 

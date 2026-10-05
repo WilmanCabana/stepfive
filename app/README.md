@@ -1,13 +1,15 @@
 # APP (`/app`)
 
-Interfaz web del proyecto Stepfive. Es una SPA (React 18 + Vite + React Router) que funciona como **consola de administracion RBAC**: permite gestionar usuarios, roles y permisos contra la API backend.
+Interfaz web del proyecto Stepfive. Es una SPA (React 18 + Vite + React Router) con autenticación RBAC y módulos para gestionar usuarios, roles, permisos, espacios recreativos y reservas contra la API backend.
 
 ### Que ve el usuario
 
 | Pantalla          | Ruta              | Permiso requerido      | Que hace                                                              |
 |-------------------|-------------------|------------------------|-----------------------------------------------------------------------|
 | **Login/Registro**| `/auth`           | Publica                | Formulario de login y wizard de registro (5 pasos, carga imagen a Firebase) |
-| **Dashboard**     | `/`               | `AccessDashboard`      | Saludo con nombre del usuario y fecha actual                          |
+| **Discover**      | `/`               | `AccessDashboard`      | Catálogo de espacios aprobados, consultado mediante el endpoint público, con filtros de búsqueda |
+| **Mis espacios recreativos** | `/space-recreationals` | `AccessSpaces` | Gestión de espacios en tarjetas/tabla y calendario de reservas recibidas |
+| **Mis reservas** | `/my-reservations` | `ReadReservations` | Timeline de reservas propias y detalle del espacio y la reserva |
 | **Usuarios**      | `/users`          | `AccessUsers`          | Listado en tarjetas o tabla, autorizar/desautorizar, asignar roles, ver detalles, eliminar |
 | **Autorizacion**  | `/authorization`  | `AccessAuthorization`  | CRUD de roles (crear, editar, activar/desactivar, asignar permisos) y consulta de permisos |
 
@@ -34,6 +36,8 @@ El frontend usa variables con prefijo `VITE_*` (archivo `.env` en la raiz de `ap
 | `VITE_IS_DEV_MODE`    | Alterna entre dev y prod (`true` o `false`)    | `true`                               |
 | `VITE_API_URL_DEV`    | URL de la API en desarrollo                    | `http://localhost:3000/api/v1`       |
 | `VITE_API_URL_PROD`   | URL de la API en produccion                    | `https://mi-backend.onrender.com/api/v1` |
+| `VITE_SUPABASE_URL`  | URL del proyecto Supabase para imágenes de espacios | `https://<project-ref>.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Clave anon/public de Supabase                | `<anon-key>` |
 
 El codigo lee estas variables via `import.meta.env.VITE_*` y elige la URL segun `VITE_IS_DEV_MODE`. En produccion se debe configurar `VITE_IS_DEV_MODE=false`.
 
@@ -44,6 +48,19 @@ El registro de usuarios sube la imagen de perfil a Firebase Storage. La configur
 **`src/core/config/firebase.config.mjs`**
 
 Si el proyecto de Firebase cambia, actualiza las credenciales en ese archivo.
+
+### Supabase Storage (imagenes de espacios)
+
+La portada y la galería de los espacios recreativos se suben a Supabase Storage mediante `src/core/utils/uploadImage.mjs`. Crea un bucket público llamado `space-images` y configura `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `app/.env`. Las imágenes de perfil del registro de usuarios siguen usando el flujo existente de Firebase.
+
+## Espacios y reservas
+
+- **Discover (`/`)** muestra los espacios aprobados y permite filtrar por tipo, buscar por nombre y ordenar por precio. El catálogo de API usa el endpoint público `GET /spaces/discover`; la vista del panel sigue su configuración de acceso `AccessDashboard`.
+- **Mis espacios recreativos (`/space-recreationals`)** permite gestionar espacios en tarjetas o tabla. Su tercera pestaña, **Reservas**, presenta el calendario y las reservas recibidas para los espacios del propietario.
+- **Mis reservas (`/my-reservations`)** presenta las reservas propias en un timeline. Al seleccionar una, abre el detalle completo del espacio junto con los datos de esa reserva.
+- Para reservar, el usuario elige franjas disponibles y confirma con el método PSE. No hay pasarela de pago real: la API registra la reserva como pagada manualmente y genera una referencia `manual-*`.
+
+Los permisos y el esquema de reservas se preparan ejecutando `api/src/core/orm/database/scripts/init-spaces.sql` y luego `api/src/core/orm/database/scripts/init-reservations.sql` en el SQL Editor de Supabase.
 
 ## Integracion de auth
 
@@ -120,7 +137,7 @@ if (hasAuthorities(session, { roles: ['Admin'], permissions: ['CreateUsers'] }))
 src/
 ├── core/                     # Codigo compartido
 │   ├── components/           # ProtectedRoute, ConnectionWrapper, MapPicker, Table, TabGroup...
-│   ├── config/               # Configuracion de API via variables de entorno .env y Firebase
+│   ├── config/               # Configuracion de API, Supabase y Firebase
 │   ├── contexts/             # AuthContext, ThemeContext, NotificationContext
 │   ├── hooks/                # useForm, useLoad, useSync, etc.
 │   ├── lib/                  # Notify (notificaciones toast)
@@ -137,9 +154,9 @@ src/
 │   └── panel/                # Panel de administracion
 │       ├── config/               # panel.config.jsx (menu, rutas, permisos)
 │       ├── layouts/              # PanelLayout (sidebar + outlet)
-│       ├── pages/                # Dashboard, Users, Authorization
-│       ├── components/           # UserCard, UsersTable, RoleCard, RoleForm, Permissions...
-│       └── services/             # AuthRequester (cliente HTTP para endpoints de auth)
+│       ├── pages/                # Discover, Spaces, MyReservations, Users, Authorization
+│       ├── components/           # Espacios: SpaceRecreationalForm/Detail; reservas: ReservationBooking, ReservationCalendar, SpaceReservations
+│       └── services/             # Requesters de auth, espacios recreativos y reservas
 │
 └── main.jsx                  # Entry point, rutas, providers
 ```

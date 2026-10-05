@@ -2,6 +2,10 @@
 
 Monorepo fullstack compuesto por un backend REST en **Node.js + TypeScript + Express 5 + PostgreSQL** y un frontend en **Vite + React**. El proyecto implementa un sistema completo de autenticación y autorización basado en roles y permisos, con una arquitectura modular en capas y un ORM personalizado construido desde cero.
 
+### Novedades de esta versión
+
+El sistema ahora permite registrar y gestionar canchas sintéticas y salones de eventos, consultar desde Discover el catálogo público de espacios aprobados y reservar sus franjas disponibles. Las reservas usan PSE como método registrado, pero por ahora no hay una pasarela de pago real: la confirmación se marca manualmente. También incluye carga de imágenes de espacios a Supabase Storage, un timeline de reservas para cada usuario y un calendario de reservas recibidas para los dueños.
+
 ### Que se puede hacer hoy
 
 - Registrar usuarios (wizard de 5 pasos con carga de imagen a Firebase).
@@ -11,6 +15,12 @@ Monorepo fullstack compuesto por un backend REST en **Node.js + TypeScript + Exp
 - Consultar permisos: listado con filtros por tipo.
 - Proteger rutas del frontend por roles y permisos.
 - Tema claro/oscuro.
+- Registrar y gestionar espacios recreativos: canchas sintéticas y salones de eventos.
+- Consultar en Discover los espacios aprobados y sus detalles mediante el endpoint público del catálogo.
+- Reservar espacios disponibles con PSE registrado; el pago se confirma manualmente y no usa una pasarela real.
+- Subir portadas y galería de espacios a Supabase Storage.
+- Consultar las reservas propias en formato timeline.
+- Consultar en un calendario las reservas recibidas de los espacios del dueño.
 
 ## Requisitos previos
 
@@ -19,6 +29,7 @@ Monorepo fullstack compuesto por un backend REST en **Node.js + TypeScript + Exp
 | Node.js     | 18 LTS         |
 | pnpm        | 8+             |
 | Supabase    | Opcional, solo para desarrollo local |
+| Supabase Storage | Bucket público `space-images` para subir imágenes de espacios |
 
 ## Quick Start
 
@@ -36,7 +47,18 @@ cp api/.env.example api/.env
 cp app/.env.example app/.env
 # Edita app/.env con la URL del backend
 
-# 4. Levantar (dos terminales)
+# 4. Configurar Supabase para espacios y reservas
+# Primero inicia la API una vez para que el ORM sincronice las tablas; luego detenla.
+# En Storage, crea el bucket público `space-images`.
+# En SQL Editor ejecuta, en este orden:
+# api/src/core/orm/database/scripts/init.sql
+# api/src/core/orm/database/scripts/init-spaces.sql
+# api/src/core/orm/database/scripts/init-reservations.sql
+# Configura estas variables en app/.env:
+# VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+# VITE_SUPABASE_ANON_KEY=<anon-key>
+
+# 5. Levantar (dos terminales)
 pnpm run dev --prefix api   # http://localhost:3000/api/v1
 pnpm run dev --prefix app   # http://localhost:5173
 ```
@@ -56,11 +78,13 @@ stepfive/
 ├── api/          # Backend — Express 5, TypeScript, ORM custom, PostgreSQL
 │   └── src/
 │       ├── core/     # Framework: ORM, router, decoradores, DI, middlewares
-│       └── auth/     # Modulo de auth: controladores, servicios, entidades, repos
+│       ├── auth/     # Modulo de auth: controladores, servicios, entidades, repos
+│       ├── spaces/   # Espacios recreativos: canchas y salones
+│       └── reservations/ # Reservas y disponibilidad
 ├── app/          # Frontend — React 18, Vite, React Router
 │   └── src/
 │       ├── core/     # Componentes, contextos, hooks, servicios y estilos compartidos
-│       └── modules/  # auth (login/registro) y panel (dashboard, usuarios, roles)
+│       └── modules/  # auth y panel (Discover, espacios, reservas, usuarios y roles)
 └── README.md
 ```
 
@@ -105,5 +129,5 @@ pnpm dlx concurrently "pnpm run dev --prefix api" "pnpm run dev --prefix app"
 
 ## Documentacion detallada
 
-- [api/README.md](./api/README.md) — variables de entorno, base de datos, endpoints de auth.
-- [app/README.md](./app/README.md) — servidor de desarrollo, AuthContext, configuracion de API.
+- [api/README.md](./api/README.md) — variables de entorno, base de datos y endpoints de auth, espacios y reservas.
+- [app/README.md](./app/README.md) — servidor de desarrollo, AuthContext, Discover y flujo de reservas.

@@ -39,7 +39,14 @@ export const API = {
     }),
     SPACE_RECREATIONAL: new EndpointGroup(`${URL_BASE}/spaces`, {
         SPACE_RECREATIONALS: '',
-        MY_SPACE_RECREATIONALS: 'me'
+        MY_SPACE_RECREATIONALS: 'me',
+        DISCOVER: 'discover'
+    }),
+    RESERVATIONS: new EndpointGroup(`${URL_BASE}/reservations`, {
+        ALL: '',
+        ME: 'me',
+        SPACE: 'space',
+        SPACES: 'spaces'
     })
 }
 

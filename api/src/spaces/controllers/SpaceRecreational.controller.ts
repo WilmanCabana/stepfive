@@ -1,4 +1,5 @@
 import { Permissions } from '../../core/decorators/auth.decorator.js'
+import { Public } from '../../core/decorators/public.decorator.js'
 import { Controller } from '../../core/decorators/controller.decorator.js'
 import { Inject } from '../../core/decorators/inject.decorator.js'
 import { Delete, Get, Patch, Post, Put } from '../../core/decorators/route.decorator.js'
@@ -14,10 +15,10 @@ const SPACE_FIELDS = [
     'hasParking', 'parkingCapacity', 'hasKitchen', 'hasDressingRooms', 'hasShowers',
     'hasLighting', 'hasSound', 'hasStage', 'hasWifi', 'hasGenerator', 'isAccessible',
     'condition', 'pricePerHour', 'paymentMethods',
-    'allowsAlcohol', 'allowsFood', 'allowsMusic', 'requiresDeposit', 'depositAmount',
+    'allowsAlcohol', 'allowsFood', 'allowsMusic',
     'openingHours', 'coverImage', 'gallery',
     'fieldType', 'fieldDimensions', 'hasNets', 'hasBalls', 'hasVests', 'seatedCapacity',
-    'standingCapacity', 'hasDanceFloor', 'hasFurniture', 'hasVIPArea',
+    'hasDanceFloor', 'hasFurniture', 'hasVIPArea',
     'reservationMode', 'reservationUnitMinutes'
 ]
 
@@ -48,6 +49,13 @@ export class SpaceRecreationalController {
     @Permissions([PERMISSIONS.SPACE.READ])
     async findMine(request, response) {
         const spaces = await this.spaceService.findMySpaces(request.user.id)
+        return response.status(200).json(spaces.map(space => new SpaceRecreationalDTO(space)))
+    }
+
+    @Get('/discover')
+    @Public()
+    async discover(request, response) {
+        const spaces = await this.spaceService.discover(request.query)
         return response.status(200).json(spaces.map(space => new SpaceRecreationalDTO(space)))
     }
 

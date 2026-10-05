@@ -1,28 +1,39 @@
 import './ImageUploader.css'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import Button from '../Button/Button'
 import Icon from '../Icon/Icon'
 import Logo from '../Logo/Logo'
 
-const ImageUploader = ({ value, setForm, name }) => {
+const ImageUploader = ({ value, setForm, name, multiple = false, maxFiles = 1 }) => {
     const imageInputRef = useRef(null)
+    const [previews, setPreviews] = useState([])
 
     useEffect(() => {
+        const values = multiple ? (Array.isArray(value) ? value : []) : (value ? [value] : [])
+        const nextPreviews = values.map(item => {
+            const isFile = typeof File !== 'undefined' && item instanceof File
+            return { src: isFile ? URL.createObjectURL(item) : item, isFile }
+        })
+        setPreviews(nextPreviews)
         return () => {
-            if (value instanceof Object) {
-                URL.revokeObjectURL(value)
-            }
+            nextPreviews.filter(preview => preview.isFile).forEach(preview => URL.revokeObjectURL(preview.src))
         }
-    }, [value])
+    }, [value, multiple])
 
     const handleImageChange = (event) => {
-        const file = Array.from(event.target.files)[0]
-        if (file) {
+        const files = Array.from(event.target.files || [])
+        if (multiple && files.length) {
             setForm(prev => ({
                 ...prev,
-                [name]: file
+                [name]: [...(Array.isArray(prev[name]) ? prev[name] : []), ...files].slice(0, maxFiles)
+            }))
+        } else if (files[0]) {
+            setForm(prev => ({
+                ...prev,
+                [name]: files[0]
             }))
         }
+        event.target.value = ''
     }
 
     const handleImageInputClick = () => {
@@ -31,38 +42,33 @@ const ImageUploader = ({ value, setForm, name }) => {
         }
     }
 
-    const handleImageInputClear = () => {
-        if (imageInputRef.current) {
-            imageInputRef.current.value = null
-        }
-        if (value instanceof Object) {
-            URL.revokeObjectURL(value)
-        }
+    const handleImageRemove = (index) => {
         setForm(prev => ({
             ...prev,
-            [name]: ''
+            [name]: multiple ? prev[name].filter((_, itemIndex) => itemIndex !== index) : ''
         }))
     }
 
+    const canAddImage = !multiple || previews.length < maxFiles
+
     return (
         <div className='lx-c-image-uploader-container'>
-            <div className='lx-c-image-uploader' onClick={handleImageInputClick}>
-                {value
-                    ? <img className='--image' src={value instanceof Object ? URL.createObjectURL(value) : value} />
-                    : <Logo size='s' color='ghost' />}
+            <div className={`lx-c-image-uploader${multiple ? ' --multiple' : ''}`}>
+                {previews.length
+                    ? previews.map((preview, index) => <div className='lx-c-image-uploader-item' key={`${preview.src}-${index}`}>
+                        <img className='--image' src={preview.src} alt={`Imagen ${index + 1}`} />
+                        <button type='button' className='lx-c-image-uploader-remove' onClick={() => handleImageRemove(index)} aria-label={`Eliminar imagen ${index + 1}`}>
+                            <Icon name='close' />
+                        </button>
+                    </div>)
+                    : <button type='button' className='lx-c-image-uploader-empty' onClick={handleImageInputClick} aria-label='Agregar imagen'><Logo size='s' color='ghost' /></button>}
             </div>
 
             <div className='lx-c-image-uploader-actions'>
-                <Button size='xs' radius='full' color='auto' variant='bordered' onClick={handleImageInputClick}>
-                    <Icon name={value ? 'reset_image' : 'image_arrow_up'} />
-                    {value ? 'Cambiar' : 'Agregar imagen'}
-                </Button>
-                {value &&
-                    <Button size='xs' radius='full' color='danger' onClick={handleImageInputClear}>
-                        <Icon name='hide_image' />
-                        Eliminar
-                    </Button>
-                }
+                {canAddImage && <Button size='xs' radius='full' color='auto' variant='bordered' onClick={handleImageInputClick}>
+                    <Icon name={previews.length ? 'add' : 'image_arrow_up'} />
+                    {previews.length ? 'Agregar imagen' : 'Agregar imagen'}
+                </Button>}
             </div>
 
             <div className='lx-forms-input-group-hidden'>
@@ -74,6 +80,7 @@ const ImageUploader = ({ value, setForm, name }) => {
                     name={name}
                     type='file'
                     accept="image/png, image/jpeg, image/webp, .png, .jpg, .webp"
+                    multiple={multiple}
                     autoComplete='off'
                 />
                 <label htmlFor={`${name}-input`} className='lx-forms-label'>Imagen</label>

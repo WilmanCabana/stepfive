@@ -6,17 +6,17 @@ import { InvalidFormatError } from '../../core/errors/InvalidFormat.error.js'
 import { NotFoundError } from '../../core/errors/NotFound.error.js'
 import SpaceRecreational from '../entities/SpaceRecreational.entity.js'
 import SpaceRecreationalRepository from '../repositories/SpaceRecreational.repository.js'
-import { RESERVATION_DEFAULTS, SPACE_CONDITIONS, SPACE_FIELD_TYPES, SPACE_STATUSES, SPACE_TYPES } from '../constants/authorities.js'
+import { RESERVATION_DEFAULTS, SPACE_CONDITIONS, SPACE_FIELD_TYPES, SPACE_PAYMENT_METHODS, SPACE_STATUSES, SPACE_TYPES } from '../constants/authorities.js'
 
-const JSON_FIELDS = ['paymentMethods', 'openingHours', 'gallery']
+const JSON_FIELDS = ['openingHours', 'gallery']
 const NUMERIC_FIELDS = [
     'maxCapacity', 'totalArea', 'bathrooms', 'parkingCapacity', 'pricePerHour',
-    'depositAmount', 'seatedCapacity', 'standingCapacity', 'reservationUnitMinutes'
+    'seatedCapacity', 'reservationUnitMinutes'
 ]
 const BOOLEAN_FIELDS = [
     'hasParking', 'hasKitchen', 'hasDressingRooms', 'hasShowers', 'hasLighting',
     'hasSound', 'hasStage', 'hasWifi', 'hasGenerator', 'isAccessible',
-    'allowsAlcohol', 'allowsFood', 'allowsMusic', 'requiresDeposit', 'hasNets',
+    'allowsAlcohol', 'allowsFood', 'allowsMusic', 'hasNets',
     'hasBalls', 'hasVests', 'hasDanceFloor', 'hasFurniture', 'hasVIPArea'
 ]
 
@@ -47,6 +47,26 @@ function longestOpeningWindow(value: unknown) {
         if (!hours || typeof hours !== 'object' || hours.available === false) return 0
         return openingWindowMinutes(`${hours.open || ''}-${hours.close || ''}`)
     }))
+}
+
+function openingWindows(value: unknown) {
+    let parsed = value
+    if (typeof parsed === 'string') {
+        try { parsed = JSON.parse(parsed) } catch { return [] }
+    }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return []
+
+    return Object.entries(parsed).flatMap(([day, hours]) => {
+        if (hours && typeof hours === 'object' && hours.available === false) return []
+        const value = typeof hours === 'string' ? hours : `${hours?.open || ''}-${hours?.close || ''}`
+        const durationMinutes = openingWindowMinutes(value)
+        return durationMinutes > 0 ? [{ day, hours: value.replace('-', ' - '), durationMinutes }] : []
+    })
+}
+
+const DAY_LABELS = {
+    monday: 'lunes', tuesday: 'martes', wednesday: 'miércoles', thursday: 'jueves',
+    friday: 'viernes', saturday: 'sábado', sunday: 'domingo'
 }
 
 function serializeData(data: Partial<SpaceRecreational>) {
@@ -101,11 +121,10 @@ export class SpaceRecreationalService {
             if (data.reservationUnitMinutes <= 0) throw new InvalidFormatError('La unidad de reserva debe ser mayor a cero')
         }
 
-        const paymentMethods = (data as any).paymentMethods
+        const paymentMethods = data.paymentMethods
         const gallery = (data as any).gallery
         if (paymentMethods !== undefined) {
-            Validator.isArray({ paymentMethods })
-            paymentMethods.forEach(method => Validator.isIn({ paymentMethod: method }, ['cash', 'pse']))
+            Validator.isIn({ paymentMethods }, SPACE_PAYMENT_METHODS)
         }
         if (gallery !== undefined) Validator.isArray({ gallery })
     }
@@ -125,6 +144,17 @@ export class SpaceRecreationalService {
         const requiredMinutes = data.type === 'synthetic_field' ? 60 : data.reservationUnitMinutes
         if (!requiredMinutes || requiredMinutes <= 0) {
             throw new InvalidFormatError('La duración del bloque debe ser mayor a cero')
+        }
+        if (data.type === 'event_hall' && (requiredMinutes < 180 || requiredMinutes > 480)) {
+            throw new InvalidFormatError('La duración del bloque para salones debe estar entre 180 y 480 minutos (3-8 horas)')
+        }
+        if (data.type === 'event_hall') {
+            const invalidWindow = openingWindows(data.openingHours).find(window => window.durationMinutes % requiredMinutes !== 0)
+            if (invalidWindow) {
+                const blockHours = requiredMinutes / 60
+                const windowHours = invalidWindow.durationMinutes / 60
+                throw new InvalidFormatError(`El bloque de ${blockHours}h no cabe en el horario del ${DAY_LABELS[invalidWindow.day] || invalidWindow.day} (${invalidWindow.hours} = ${windowHours}h, no divisible entre ${blockHours})`)
+            }
         }
         if (longestOpeningWindow(data.openingHours) >= requiredMinutes) return
 
@@ -201,6 +231,33 @@ export class SpaceRecreationalService {
 
     async findAll() {
         return this.spaceRepository.findAll()
+    }
+
+    async discover(filters: { type?: string, commune?: string, priceMin?: string, priceMax?: string, search?: string } = {}) {
+        const { type, commune, search } = filters
+        const priceMin = filters.priceMin === undefined || filters.priceMin === '' ? undefined : Number(filters.priceMin)
+        const priceMax = filters.priceMax === undefined || filters.priceMax === '' ? undefined : Number(filters.priceMax)
+
+        if (type) Validator.isIn({ type }, SPACE_TYPES)
+        for (const [field, value] of Object.entries({ priceMin, priceMax })) {
+            if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
+                throw new InvalidFormatError(`${field} debe ser un número mayor o igual a cero`)
+            }
+        }
+
+        const normalizedCommune = commune?.trim().toLocaleLowerCase('es')
+        const normalizedSearch = search?.trim().toLocaleLowerCase('es')
+        const spaces = await this.spaceRepository.findAll()
+        return spaces.filter(space => {
+            if (space.verificationStatus !== 'approved') return false
+            if (type && space.type !== type) return false
+            if (normalizedCommune && String(space.commune || '').trim().toLocaleLowerCase('es') !== normalizedCommune) return false
+            if (normalizedSearch && !String(space.name || '').toLocaleLowerCase('es').includes(normalizedSearch)) return false
+            const price = Number(space.pricePerHour)
+            if (priceMin !== undefined && price < priceMin) return false
+            if (priceMax !== undefined && price > priceMax) return false
+            return true
+        })
     }
 
     async findMySpaces(ownerId: string) {
