@@ -1,0 +1,102 @@
+.lx-c-space-reservations {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    color: var(--lx-color-text);
+}
+
+.lx-c-space-reservations-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: var(--lx-primary-border);
+}
+
+.lx-c-space-reservations-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.lx-c-space-reservations-header .lx-forms-input-field {
+    width: min(100%, 360px);
+}
+
+.lx-c-space-reservations-space {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    color: var(--lx-color-text-soft);
+}
+
+.lx-c-space-reservations-space strong {
+    color: var(--lx-color-text);
+}
+
+.lx-c-space-reservations-layout {
+    display: grid;
+    grid-template-columns: minmax(260px, .8fr) minmax(0, 1.2fr);
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.lx-c-space-reservations-day h3 {
+    margin: 0 0 .75rem;
+    font-size: 1.05rem;
+}
+
+.lx-c-space-reservations-day > p {
+    color: var(--lx-color-text-soft);
+}
+
+.lx-c-space-reservations-day article {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .85rem 0;
+    border-bottom: var(--lx-primary-border);
+}
+
+.lx-c-space-reservations-day article > div {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.lx-c-space-reservations-day article span,
+.lx-c-space-reservations-day article a,
+.lx-c-space-reservations-day .--reservation-state span {
+    color: var(--lx-color-text-soft);
+    font-size: .9rem;
+}
+
+.lx-c-space-reservations-day article a {
+    text-decoration: none;
+}
+
+.lx-c-space-reservations-day .--reservation-state {
+    align-items: flex-end;
+    white-space: nowrap;
+}
+
+.lx-c-space-reservations-message {
+    margin: 0;
+    color: var(--lx-color-danger);
+}
+
+.lx-c-space-reservations-empty {
+    color: var(--lx-color-text-soft);
+}
+
+@media (max-width: 760px) {
+    .lx-c-space-reservations-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .lx-c-space-reservations-layout {
+        grid-template-columns: 1fr;
+    }
+}
