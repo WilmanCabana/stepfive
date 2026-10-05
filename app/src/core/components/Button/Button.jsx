@@ -12,6 +12,8 @@ const Button = ({
   loading = false,
   width = 'fit',
   icon = false,
+  title,
+  ariaLabel,
   children,
   onClick,
 }) => {
@@ -63,6 +65,8 @@ const Button = ({
   return (
     <button
       className={className}
+      title={title}
+      aria-label={ariaLabel}
       onClick={async (event) => {
         event.stopPropagation()
         event.preventDefault()
@@ -117,6 +121,8 @@ Button.propTypes = {
   ]),
   width: PropTypes.oneOf(['full', 'fit']),
   icon: PropTypes.bool,
+  title: PropTypes.string,
+  ariaLabel: PropTypes.string,
   children: PropTypes.node,
   onClick: PropTypes.func,
 }
