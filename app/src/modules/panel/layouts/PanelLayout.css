@@ -199,6 +199,8 @@
 }
 
 .lx-l-panel-sidebar-nav-btn {
+    width: 100%;
+    min-height: 44px;
     background: transparent;
     outline: none;
     border: none;
@@ -209,8 +211,17 @@
     border-radius: var(--lx-border-radius-s);
     color: rgba(255, 255, 255, 0.6);
     text-decoration: none;
-    transition: all 0.5s ease;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
     border: 0.01rem solid transparent;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+}
+
+.lx-l-panel-sidebar-nav-btn:focus-visible,
+.lx-l-panel-sidebar-session:focus-visible {
+    outline: 3px solid var(--lx-color-accent);
+    outline-offset: 2px;
 }
 
 .lx-l-panel-sidebar-nav-btn:hover {
@@ -322,6 +333,14 @@
     justify-content: left;
     overflow: hidden;
     transition: background .3s ease;
+    padding: 0;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
 }
 
 .lx-l-panel-sidebar-session:hover {
@@ -569,7 +588,7 @@
 
 .lx-l-panel-main-session {
     width: 100%;
-    max-width: 400px;
+    max-width: min(350px, calc(100vw - 1rem));
     position: absolute;
     z-index: 1000;
     top: 8px;

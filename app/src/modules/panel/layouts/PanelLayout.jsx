@@ -1,5 +1,6 @@
 import './PanelLayout.css'
 import { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../../core/contexts/AuthContext'
 import { useTheme } from '../../../core/hooks/useTheme'
@@ -31,7 +32,13 @@ function PanelLayout({ menu }) {
 
         <div className={sidebar ? 'lx-l-panel-sidebar-menu' : 'lx-l-panel-sidebar-menu disabled'}>
 
-          <div className='lx-l-panel-sidebar-session' onClick={() => setUser(!user)}>
+          <button
+            type='button'
+            className='lx-l-panel-sidebar-session'
+            onClick={() => setUser(!user)}
+            aria-expanded={user}
+            aria-label={`Perfil de ${session.user?.name || 'Visitante'}`}
+          >
             <div className='lx-l-panel-sidebar-session-avatar'>
               {session.user?.image ? <img src={session.user.image} className='--image' /> : <div className='--char'>
                 {session.user?.name ? session.user?.name[0] : '?'}
@@ -41,14 +48,14 @@ function PanelLayout({ menu }) {
               <p>{session.user?.name || 'Visitante'}</p>
               <span>@{session.user?.username || 'visitante'}</span>
             </div>
-          </div>
+          </button>
 
           <div className='lx-l-panel-sidebar-content'>
             <nav className='lx-l-panel-nav'>
               {menu.filter(item => hasAuthorities(session, item.authorities)).map(item => (<div className='lx-l-panel-sidebar-nav-item' key={item.to}>
                 <NavLink
                   key={item.to}
-                  to={item.to}
+                  to={item.isBase ? '/panel' : item.to}
                   end={item.isBase ? true : false}
                   className={({ isActive }) =>
                     isActive ? 'lx-l-panel-sidebar-nav-btn active' : 'lx-l-panel-sidebar-nav-btn'
@@ -85,15 +92,20 @@ function PanelLayout({ menu }) {
 
             <div className='lx-l-panel-sidebar-section'>
 
-              <div className='lx-l-panel-sidebar-nav-btn' onClick={() => {
-                setThemePreference(isDarkTheme ? 'light' : 'dark')
-              }}>
+              <button
+                type='button'
+                className='lx-l-panel-sidebar-nav-btn'
+                aria-pressed={isDarkTheme}
+                onClick={() => {
+                  setThemePreference(isDarkTheme ? 'light' : 'dark')
+                }}
+              >
                 <div className='lx-l-panel-sidebar-nav-btn-icon'>
                   <span className='material-symbols-rounded' translate='no'>{isDarkTheme ? 'light_mode' : 'dark_mode'}</span>
                 </div>
                 <div className='lx-l-panel-sidebar-nav-btn-text'>Modo {isDarkTheme ? 'claro' : 'oscuro'}</div>
                 <div className='lx-l-panel-sidebar-nav-btn-label'>Modo</div>
-              </div>
+              </button>
 
             </div>
 
@@ -141,6 +153,10 @@ function PanelLayout({ menu }) {
       </main>
     </div>
   </>)
+}
+
+PanelLayout.propTypes = {
+  menu: PropTypes.array.isRequired,
 }
 
 export default PanelLayout
