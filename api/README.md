@@ -1,4 +1,4 @@
-# API (`/api`)
+# API (`/api`) — Stepfive v3.0.0
 
 Servicio backend del proyecto Stepfive Inno Project. Expone una API REST para **identidad y control de acceso (IAM)**, gestión de espacios recreativos y reservas.
 
@@ -12,8 +12,21 @@ Construido con un **framework custom** sobre Express 5: decoradores para rutas (
 | `Role`         | `Roles`          | Rol con nombre, alias, descripcion (ej: Admin, Guest, User)   |
 | `Permission`   | `Permissions`    | Permiso granular con tipo (Access, Create, Read, Update, etc.) |
 | `BlockedToken` | `BlockedTokens`  | Tokens JWT revocados (logout)                                  |
+| `SpaceRecreational` | `SpaceRecreationals` | Espacio recreativo; incluye datos descriptivos y URL opcional `presentationVideo` |
 
 Relaciones: `UsersRoles` (M2M usuario-rol), `RolesPermissions` (M2M rol-permiso).
+
+### Video de presentación del espacio
+
+La entidad y el `SpaceRecreationalDTO` incluyen `presentationVideo`, una URL opcional del video de presentación. El servicio valida que la URL tenga formato válido. Los archivos se suben desde el frontend a Supabase Storage y la API solo persiste/retorna la URL.
+
+Para instalaciones existentes, aplica la migración manual:
+
+```sql
+ALTER TABLE "SpaceRecreationals" ADD COLUMN IF NOT EXISTS "presentationVideo" text NULL;
+```
+
+El script está en `src/core/orm/database/scripts/alter-spaces-video.sql`. El frontend guarda los videos bajo la carpeta `videos/` del bucket público `space-images`. Configura ese bucket para admitir `video/mp4` y `video/webm`; el límite de carga del frontend es 20 MB. Las imágenes existentes siguen usando el mismo bucket.
 
 ## Instalacion
 
@@ -259,6 +272,7 @@ Inicia la API una vez para que el ORM sincronice las tablas. Después, ejecuta l
 
 1. `src/core/orm/database/scripts/init-spaces.sql` registra los permisos de espacios.
 2. `src/core/orm/database/scripts/init-reservations.sql` crea la tabla e índices de reservas, la restricción contra franjas solapadas y los permisos del módulo.
+3. `src/core/orm/database/scripts/alter-spaces-video.sql` agrega `presentationVideo` a instalaciones existentes si la columna no está creada.
 
 La tabla `SpaceRecreationals` se sincroniza al iniciar la API mediante el ORM.
 
