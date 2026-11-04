@@ -1,10 +1,11 @@
 /* eslint-disable react/prop-types */
 import './SpaceRecreationalForm.css'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Button from '../../../../core/components/Button/Button'
 import Input from '../../../../core/components/Input/Input'
 import InputGroup from '../../../../core/components/InputGroup/InputGroup'
 import ImageUploader from '../../../../core/components/ImageUploader/ImageUploader'
+import Icon from '../../../../core/components/Icon/Icon'
 import Select from '../../../../core/components/Select/Select'
 import Textarea from '../../../../core/components/Textarea/Textarea'
 import { useForm } from '../../../../core/hooks/useForm'
@@ -46,23 +47,105 @@ const openingHoursValue = (value) => {
 
 const reservationFor = (type) => SPACE.OPTIONS.RESERVATION[type] || SPACE.OPTIONS.RESERVATION.synthetic_field
 const isFile = (value) => typeof File !== 'undefined' && value instanceof File
+const DRAFT_KEY = 'draft_space_recreational'
+const MAX_VIDEO_SIZE = 20 * 1024 * 1024
+
+const readDraft = (isCreating) => {
+    if (!isCreating) return { data: null, hasDraft: false, error: '' }
+    try {
+        const stored = localStorage.getItem(DRAFT_KEY)
+        if (!stored) return { data: null, hasDraft: false, error: '' }
+        const parsed = JSON.parse(stored)
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            return { data: null, hasDraft: false, error: 'El borrador guardado no es válido.' }
+        }
+        return { data: parsed, hasDraft: true, error: '' }
+    } catch {
+        return { data: null, hasDraft: false, error: 'No se pudo leer el borrador guardado en este navegador.' }
+    }
+}
 
 const SpaceRecreationalForm = ({ space, onCancel = () => { }, onSubmit = () => { } }) => {
     const [uploading, setUploading] = useState(false)
+    const [uploadingVideo, setUploadingVideo] = useState(false)
     const [uploadError, setUploadError] = useState('')
+    const [videoError, setVideoError] = useState('')
     const [validationError, setValidationError] = useState('')
+    const videoInputRef = useRef(null)
+    const [draftState] = useState(() => readDraft(!space))
+    const [draftAvailable, setDraftAvailable] = useState(draftState.hasDraft)
+    const [draftEdited, setDraftEdited] = useState(draftState.hasDraft)
+    const [draftError, setDraftError] = useState(draftState.error)
     const spaceData = Object.fromEntries(Object.entries(space || {}).filter(([field]) => formFields.includes(field)))
-    const type = spaceData.type || SPACE.FORM.INITIAL.type
-    const initial = {
+    const draftData = draftState.data || {}
+    const type = draftData.type || spaceData.type || SPACE.FORM.INITIAL.type
+    const defaultType = spaceData.type || SPACE.FORM.INITIAL.type
+    const defaultForm = {
         ...SPACE.FORM.INITIAL,
         ...spaceData,
         paymentMethods: 'pse',
         gallery: listValue(spaceData.gallery),
         openingHours: openingHoursValue(spaceData.openingHours),
+        reservationMode: reservationFor(defaultType).mode,
+        reservationUnitMinutes: spaceData.reservationUnitMinutes || reservationFor(defaultType).unitMinutes
+    }
+    const initial = {
+        ...defaultForm,
+        ...draftData,
+        paymentMethods: 'pse',
+        gallery: listValue(draftData.gallery ?? defaultForm.gallery),
+        openingHours: openingHoursValue(draftData.openingHours ?? defaultForm.openingHours),
         reservationMode: reservationFor(type).mode,
-        reservationUnitMinutes: spaceData.reservationUnitMinutes || reservationFor(type).unitMinutes
+        reservationUnitMinutes: draftData.reservationUnitMinutes || defaultForm.reservationUnitMinutes
     }
     const { form, handleChange, setForm } = useForm(initial)
+
+    const persistDraft = useCallback((values) => {
+        try {
+            const draft = {
+                ...values,
+                coverImage: isFile(values.coverImage) ? '' : values.coverImage,
+                gallery: values.gallery.filter(image => !isFile(image))
+            }
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+            setDraftAvailable(true)
+            setDraftError('')
+            return true
+        } catch {
+            setDraftError('No se pudo guardar el borrador en este navegador.')
+            return false
+        }
+    }, [])
+
+    useEffect(() => {
+        if (space || !draftEdited) return
+        persistDraft(form)
+    }, [form, space, draftEdited, persistDraft])
+
+    const removeDraft = () => {
+        try {
+            localStorage.removeItem(DRAFT_KEY)
+            setDraftAvailable(false)
+            setDraftEdited(false)
+            setDraftError('')
+            return true
+        } catch {
+            setDraftError('No se pudo eliminar el borrador guardado en este navegador.')
+            return false
+        }
+    }
+
+    const clearForm = () => {
+        removeDraft()
+        setForm(defaultForm)
+        setUploadError('')
+        setValidationError('')
+    }
+
+    const cancelForm = () => {
+        if (!space && !removeDraft()) return
+        onCancel()
+    }
 
     const updateType = (event) => {
         const type = event.target.value
@@ -106,7 +189,52 @@ const SpaceRecreationalForm = ({ space, onCancel = () => { }, onSubmit = () => {
         }))
     }
 
+    const handlePresentationVideoChange = async (event) => {
+        const file = event.target.files?.[0]
+        event.target.value = ''
+        if (!file) return
+
+        if (!['video/mp4', 'video/webm'].includes(file.type)) {
+            setVideoError('El video debe estar en formato MP4 o WebM.')
+            return
+        }
+        if (file.size > MAX_VIDEO_SIZE) {
+            setVideoError('El video supera el límite máximo de 20 MB.')
+            return
+        }
+
+        setVideoError('')
+        setUploadingVideo(true)
+        try {
+            const { uploadVideo } = await import('../../../../core/utils/uploadFile.mjs')
+            const fileName = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9._-]/g, '_')
+            const path = `videos/${crypto.randomUUID()}-${fileName}`
+            const url = await uploadVideo(file, path)
+            if (!url) {
+                setVideoError('No se pudo subir el video. Inténtalo de nuevo.')
+                return
+            }
+            if (!space) {
+                const draft = readDraft(true).data || form
+                persistDraft({ ...draft, presentationVideo: url })
+            }
+            setForm(current => ({ ...current, presentationVideo: url }))
+            setDraftEdited(true)
+        } catch {
+            setVideoError('No se pudo subir el video. Revisa la conexión e inténtalo de nuevo.')
+        } finally {
+            setUploadingVideo(false)
+        }
+    }
+
+    const removePresentationVideo = () => {
+        setForm(current => ({ ...current, presentationVideo: '' }))
+        setDraftEdited(true)
+        setVideoError('')
+    }
+
     const submit = async () => {
+        if (uploadingVideo) return
         const blockHours = Number(form.reservationUnitMinutes) / 60
         if (form.type === 'event_hall' && (!Number.isInteger(blockHours) || blockHours < 3 || blockHours > 8)) {
             setValidationError('La duración del bloque para salones debe estar entre 3 y 8 horas.')
@@ -118,7 +246,8 @@ const SpaceRecreationalForm = ({ space, onCancel = () => { }, onSubmit = () => {
         try {
             const upload = async (file) => {
                 const { uploadImage } = await import('../../../../core/utils/uploadImage.mjs')
-                return uploadImage(file, `spaces/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`)
+                const fileName = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9._-]/g, '_')
+                return uploadImage(file, `spaces/${crypto.randomUUID()}-${fileName}`)
             }
             const coverImage = isFile(form.coverImage) ? await upload(form.coverImage) : form.coverImage
             const gallery = await Promise.all(form.gallery.map(image => isFile(image) ? upload(image) : image))
@@ -127,7 +256,7 @@ const SpaceRecreationalForm = ({ space, onCancel = () => { }, onSubmit = () => {
                 return
             }
 
-            const data = { ...form, coverImage, gallery, paymentMethods: 'pse' }
+            const data = { ...form, coverImage, gallery, presentationVideo: form.presentationVideo || '', paymentMethods: 'pse' }
             for (const field of numericFields) data[field] = data[field] === '' ? undefined : Number(data[field])
             data.openingHours = Object.fromEntries(SPACE.OPTIONS.WEEK_DAYS.map(({ value: day }) => {
                 const { available, open, close } = form.openingHours[day] || {}
@@ -139,7 +268,8 @@ const SpaceRecreationalForm = ({ space, onCancel = () => { }, onSubmit = () => {
                 ? 60
                 : Number(form.reservationUnitMinutes) || reservation.unitMinutes
             if (!form.hasParking) data.parkingCapacity = 0
-            await onSubmit(data)
+            const saved = await onSubmit(data)
+            if (saved && !space) removeDraft()
         } catch {
             setUploadError('No se pudieron guardar los cambios. Revisa la conexión e inténtalo de nuevo.')
         } finally {
@@ -154,7 +284,13 @@ const SpaceRecreationalForm = ({ space, onCancel = () => { }, onSubmit = () => {
         </label>
     )
 
-    return <div className='lx-f-space-recreational'>
+    return <div className='lx-f-space-recreational' onChange={() => {
+        if (!space) setDraftEdited(true)
+    }}>
+        {draftAvailable && <p className='lx-f-space-recreational-draft-notice' role='status'>
+            <Icon name='save' size='s' /> Se restauró un borrador guardado en este dispositivo. Las imágenes deben volver a agregarse; el video se conserva al completar su carga.
+        </p>}
+        {draftError && <p className='lx-f-space-recreational-upload-error' role='alert'>{draftError}</p>}
         <div className='lx-f-space-recreational-section'>
             <div className='lx-f-space-recreational-section-header'><strong>1. General</strong></div>
             <InputGroup columns={2}>
@@ -267,6 +403,10 @@ const SpaceRecreationalForm = ({ space, onCancel = () => { }, onSubmit = () => {
 
         <div className='lx-f-space-recreational-section'>
             <div className='lx-f-space-recreational-section-header'><strong>5. Multimedia</strong></div>
+            <p className='lx-f-space-recreational-image-hint'>
+                <Icon name='aspect_ratio' size='s' />
+                Recomendación: usa imágenes horizontales (como 16:9 o 4:3) para que se vean mejor en la vista de detalles.
+            </p>
             <div className='lx-f-space-recreational-image-field'>
                 <strong>Portada</strong>
                 <ImageUploader value={form.coverImage} setForm={setForm} name='coverImage' />
@@ -275,12 +415,41 @@ const SpaceRecreationalForm = ({ space, onCancel = () => { }, onSubmit = () => {
                 <strong>Galería (máximo 4 imágenes)</strong>
                 <ImageUploader value={form.gallery} setForm={setForm} name='gallery' multiple maxFiles={4} />
             </div>
+            <div className='lx-f-space-recreational-image-field lx-f-space-recreational-video-field'>
+                <strong>Video de presentación</strong>
+                <p className='lx-f-space-recreational-image-hint'>
+                    <Icon name='aspect_ratio' size='s' />
+                    Puedes subir el video en formato vertical u horizontal. Asegúrate de que tenga buena iluminación y una duración de 30 segundos a 2 minutos. Tamaño máximo: 20 MB; formatos MP4 o WebM.
+                </p>
+                {form.presentationVideo && <div className='lx-f-space-recreational-video-preview-wrap'>
+                    <video className='lx-f-space-recreational-video-preview' src={form.presentationVideo} controls preload='metadata' />
+                </div>}
+                <div className='lx-f-space-recreational-video-actions'>
+                    <Button size='xs' radius='full' color='auto' variant='bordered' disabled={uploadingVideo || uploading} onClick={() => videoInputRef.current?.click()}>
+                        <Icon name={form.presentationVideo ? 'sync' : 'video_library'} />
+                        {uploadingVideo ? 'Subiendo video...' : form.presentationVideo ? 'Cambiar video' : 'Agregar video'}
+                    </Button>
+                    {form.presentationVideo && <Button size='xs' radius='full' color='danger' variant='plain' disabled={uploadingVideo || uploading} onClick={removePresentationVideo}>
+                        <Icon name='delete' />Quitar video
+                    </Button>}
+                </div>
+                <input
+                    ref={videoInputRef}
+                    className='lx-f-space-recreational-video-input'
+                    type='file'
+                    accept='video/mp4,video/webm,.mp4,.webm'
+                    onChange={handlePresentationVideoChange}
+                    aria-label='Seleccionar video de presentación'
+                />
+                {videoError && <p className='lx-f-space-recreational-upload-error' role='alert'>{videoError}</p>}
+            </div>
             {uploadError && <p className='lx-f-space-recreational-upload-error' role='alert'>{uploadError}</p>}
         </div>
 
         <div className='lx-f-space-recreational-actions'>
-            <Button variant='bordered' color='auto' width='full' onClick={onCancel}>Cancelar</Button>
-            <Button width='full' loading={uploading} disabled={uploading} onClick={submit}>{space ? 'Guardar cambios' : 'Registrar espacio'}</Button>
+            <Button variant='bordered' color='auto' width='fit' disabled={uploading || uploadingVideo} onClick={cancelForm}>Cancelar</Button>
+            {!space && <Button variant='bordered' color='auto' width='fit' disabled={uploading || uploadingVideo} onClick={clearForm}><Icon name='delete_sweep' />Limpiar</Button>}
+            <Button width='fit' loading={uploading} disabled={uploading || uploadingVideo} onClick={submit}>{space ? 'Guardar cambios' : 'Registrar espacio'}</Button>
         </div>
     </div>
 }
