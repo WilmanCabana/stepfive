@@ -1,5 +1,6 @@
 import './LoginForm.css'
 import { useState } from 'react'
+import PropTypes from 'prop-types'
 import { useForm } from '../../core/hooks/useForm'
 import { LOGIN } from './constants/login.mjs'
 import Validator from '../../core/utils/validator.mjs'
@@ -65,7 +66,7 @@ const LoginForm = ({ authenticationMode, setAuthenticationMode, signIn }) => {
                             <Brand size='l' className='lx-m-authentication-login-form-logo-svg' />
                         </span>
                         <br />
-                        <p>Accede al sistema para gestionar tus porcinos</p>
+                        <p>Ingresa para reservar espacios o administrar tus publicaciones.</p>
                     </div>
                     <form className='lx-m-authentication-login-form'>
                         {isLoginWithCredentials && (
@@ -75,7 +76,7 @@ const LoginForm = ({ authenticationMode, setAuthenticationMode, signIn }) => {
                                         required
                                         id='LoginUsername'
                                         name='username'
-                                        label='Username'
+                                        label='Usuario'
                                         type='text'
                                         autoComplete='off'
                                         minLength={2}
@@ -88,7 +89,7 @@ const LoginForm = ({ authenticationMode, setAuthenticationMode, signIn }) => {
                                         required
                                         id='LoginPassword'
                                         name='password'
-                                        label='Password'
+                                        label='Contraseña'
                                         value={form.password}
                                         onChange={handleChange}
                                         error={errors.password}
@@ -126,6 +127,12 @@ const LoginForm = ({ authenticationMode, setAuthenticationMode, signIn }) => {
             </div>
         </div>
     )
+}
+
+LoginForm.propTypes = {
+    authenticationMode: PropTypes.oneOf(['login', 'register']).isRequired,
+    setAuthenticationMode: PropTypes.func.isRequired,
+    signIn: PropTypes.func.isRequired,
 }
 
 export default LoginForm
