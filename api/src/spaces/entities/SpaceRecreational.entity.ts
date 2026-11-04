@@ -121,6 +121,9 @@ export class SpaceRecreational {
     @Column({ type: 'string' })
     coverImage: string
 
+    @Column({ type: 'string', nullable: true })
+    presentationVideo: string
+
     @Column({ type: 'text' })
     gallery: string
 
