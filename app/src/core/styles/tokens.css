@@ -22,6 +22,7 @@
     --lx-color-background-ternary-dimed: #cfcfcf20;
     --lx-color-background-modal: #fff;
     --lx-color-background-modal-dimed: #ffffff50;
+    --lx-color-logo-detail: #202020;
 
     --lx-background-gradient: linear-gradient(135deg, var(--lx-color-accent), var(--lx-color-accent-light));
 
@@ -187,6 +188,7 @@
     --lx-color-background-ternary-dimed: #30303040;
     --lx-color-background-modal: #101010;
     --lx-color-background-modal-dimed: #10101050;
+    --lx-color-logo-detail: #101010;
 
     --lx-color-text: rgb(255, 255, 255);
     --lx-color-text-soft: rgb(175, 175, 175);
