@@ -11,11 +11,18 @@
     position: relative;
     padding: .5rem;
     user-select: none;
-    transition: transform .3s ease, filter .3s ease;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
 }
 
 .lx-c-space-card:hover {
-    transform: scale(1.02);
+    transform: translateY(-3px);
+    border-color: var(--lx-color-accent-shadow);
+    box-shadow: var(--lx-box-shadow-nav);
+}
+
+.lx-c-space-card:focus-within {
+    outline: 3px solid var(--lx-color-accent);
+    outline-offset: 3px;
 }
 
 .lx-c-space-card-head {
@@ -152,6 +159,12 @@
 
     .lx-c-space-card-content {
         gap: .5rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .lx-c-space-card {
+            transition: none;
+        }
     }
 }
 
