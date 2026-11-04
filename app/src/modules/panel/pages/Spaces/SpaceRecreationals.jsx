@@ -43,7 +43,8 @@ const SpaceRecreationals = () => {
         const result = selectedSpace
             ? await SpaceRecreationalRequester.updateSpace({ ...data, id: selectedSpace.id })
             : await SpaceRecreationalRequester.createSpace(data)
-        if (result) { setSpaces(current => selectedSpace ? current.map(item => item.id === result.id ? result : item) : [result, ...current]); reset() }
+        if (result) { setSpaces(current => selectedSpace ? current.map(item => item.id === result.id ? result : item) : [result, ...current]); reset(); return true }
+        return false
     }
 
     const remove = (space) => open('delete', space)
