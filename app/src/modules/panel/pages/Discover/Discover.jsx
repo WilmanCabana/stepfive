@@ -59,9 +59,18 @@ const Discover = () => {
                 <h1>Descubre espacios en Santa Marta</h1>
             </div>
             <div className='lx-p-discover-filters'>
-                <Select id='discover-type' name='type' label='Tipo de espacio' value={filters.type} onChange={updateFilter('type')} options={SPACE.OPTIONS.TYPES} />
-                <Input id='discover-search' name='search' label='Buscar por nombre' value={filters.search} onChange={updateFilter('search')} />
-                <Select id='discover-price-order' name='priceOrder' label='Ordenar por precio' value={filters.priceOrder} onChange={updateFilter('priceOrder')} options={PRICE_ORDERS} />
+                <div className='lx-p-discover-filter'>
+                    <span className='material-symbols-rounded' aria-hidden='true'>search</span>
+                    <Input id='discover-search' name='search' label='Buscar por nombre' value={filters.search} onChange={updateFilter('search')} />
+                </div>
+                <div className='lx-p-discover-filter'>
+                    <span className='material-symbols-rounded' aria-hidden='true'>category</span>
+                    <Select id='discover-type' name='type' label='Tipo de espacio' value={filters.type} onChange={updateFilter('type')} options={SPACE.OPTIONS.TYPES} />
+                </div>
+                <div className='lx-p-discover-filter'>
+                    <span className='material-symbols-rounded' aria-hidden='true'>sort</span>
+                    <Select id='discover-price-order' name='priceOrder' label='Ordenar por precio' value={filters.priceOrder} onChange={updateFilter('priceOrder')} options={PRICE_ORDERS} />
+                </div>
             </div>
         </header>
         {error && <p className='lx-p-discover-message --error' role='alert'>{error}</p>}
@@ -74,11 +83,12 @@ const Discover = () => {
                 onReserve={bookSpace}
                 emptyMessage='No encontramos espacios que coincidan con tu búsqueda.'
             />}
-        <Modal show={detailOpen} title='Detalle del espacio' size='large' position='right' onClose={() => setDetailOpen(false)}>
+        <Modal show={detailOpen} title='Detalle del espacio' size='full' position='center' className='lx-c-modal-space-detail' onClose={() => setDetailOpen(false)}>
             <SpaceRecreationalDetail
                 space={selectedSpace}
                 onClose={() => setDetailOpen(false)}
                 onReserve={canReserveSelected ? () => bookSpace() : undefined}
+                showPresentationPanel
             />
         </Modal>
         <Modal show={bookingOpen} title='Reservar espacio' size='large' position='right' onClose={() => setBookingOpen(false)}>

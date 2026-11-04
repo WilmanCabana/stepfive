@@ -48,6 +48,26 @@
     transform: none;
 }
 
+.lx-p-discover-filter {
+    min-width: 0;
+    position: relative;
+}
+
+.lx-p-discover-filter > .material-symbols-rounded {
+    position: absolute;
+    z-index: 1;
+    top: 2.7rem;
+    left: .75rem;
+    color: var(--lx-color-text-softest);
+    font-size: 1.2rem;
+    pointer-events: none;
+    transform: translateY(-50%);
+}
+
+.lx-p-discover-filter .lx-forms-input {
+    padding-left: 2.5rem;
+}
+
 .lx-p-discover-filters .lx-forms-input-group > .lx-forms-input:focus ~ .lx-forms-label,
 .lx-p-discover-filters .lx-forms-input-group > .lx-forms-input:valid ~ .lx-forms-label {
     position: static;
