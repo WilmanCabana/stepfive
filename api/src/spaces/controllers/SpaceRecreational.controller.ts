@@ -16,7 +16,7 @@ const SPACE_FIELDS = [
     'hasLighting', 'hasSound', 'hasStage', 'hasWifi', 'hasGenerator', 'isAccessible',
     'condition', 'pricePerHour', 'paymentMethods',
     'allowsAlcohol', 'allowsFood', 'allowsMusic',
-    'openingHours', 'coverImage', 'gallery',
+    'openingHours', 'coverImage', 'presentationVideo', 'gallery',
     'fieldType', 'fieldDimensions', 'hasNets', 'hasBalls', 'hasVests', 'seatedCapacity',
     'hasDanceFloor', 'hasFurniture', 'hasVIPArea',
     'reservationMode', 'reservationUnitMinutes'
