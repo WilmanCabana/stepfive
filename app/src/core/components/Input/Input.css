@@ -1,19 +1,24 @@
 .lx-forms-input {
 	width: 100%;
 	min-width: 0;
+	min-height: 44px;
 	padding: .65rem .75rem;
-	border: 1px solid rgba(var(--lx-inverse), .32);
+	border: 1px solid var(--lx-color-border);
 	border-radius: var(--lx-border-radius-xs);
 	background: var(--lx-color-background-primary);
 	color: var(--lx-color-text);
 	font: inherit;
-	transition: border-color .15s ease, box-shadow .15s ease;
+	transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+.lx-forms-input:hover:not(:disabled):not(:focus) {
+	border-color: rgba(var(--lx-inverse), .45);
 }
 
 .lx-forms-input:focus {
 	border-color: var(--lx-color-accent);
 	outline: none;
-	box-shadow: 0 0 0 2px var(--lx-color-accent-shadow);
+	box-shadow: 0 0 0 3px var(--lx-color-accent-shadow);
 }
 
 .lx-forms-input:disabled {
@@ -24,4 +29,16 @@
 
 .lx-forms-input-group.--error .lx-forms-input {
 	border-color: var(--lx-color-danger);
+}
+
+.lx-forms-input-group.--error .lx-forms-input:focus {
+	box-shadow: 0 0 0 3px var(--lx-color-danger-dimed);
+}
+
+.lx-forms-error {
+	display: block;
+	margin: .35rem .15rem 0;
+	color: var(--lx-color-danger);
+	font-size: var(--lx-font-size-s);
+	line-height: 1.4;
 }
