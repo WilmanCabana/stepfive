@@ -266,6 +266,20 @@ Base: `/reservations`
 
 El módulo registra `ReadReservations`, `CreateReservations`, `CancelReservations`, `ReadOwnSpaceReservations` y `AccessReservations`. Las rutas usan las protecciones indicadas en la tabla; la consulta de reservas por espacio verifica además que el usuario sea el propietario o Admin.
 
+### `Favorite`
+
+Permite que cada usuario guarde espacios recreativos como favoritos. La entidad `Favorite` se persiste en `Favorites` y relaciona `User` (`userId`) con `SpaceRecreational` (`spaceId`). Un índice único evita que el mismo usuario marque dos veces el mismo espacio. Quitar un favorito elimina el registro.
+
+Base: `/favorites`
+
+| Método | Endpoint | Acceso requerido |
+|--------|----------|------------------|
+| `GET` | `/favorites/me` | `ReadFavorites`; devuelve los espacios aprobados marcados por el usuario |
+| `POST` | `/favorites/:spaceId` | `CreateFavorites` |
+| `DELETE` | `/favorites/:spaceId` | `DeleteFavorites` |
+
+El módulo registra `ReadFavorites`, `CreateFavorites`, `DeleteFavorites` y `AccessFavorites` (este último habilita la sección *Mis lugares favoritos* en el panel). `init-favorites.sql` los asigna a los roles Admin y User.
+
 ### Scripts SQL de módulos
 
 Inicia la API una vez para que el ORM sincronice las tablas. Después, ejecuta los scripts desde el SQL Editor de Supabase; si necesitas cargar los roles y permisos base, ejecuta primero `src/core/orm/database/scripts/init.sql`:
@@ -273,6 +287,7 @@ Inicia la API una vez para que el ORM sincronice las tablas. Después, ejecuta l
 1. `src/core/orm/database/scripts/init-spaces.sql` registra los permisos de espacios.
 2. `src/core/orm/database/scripts/init-reservations.sql` crea la tabla e índices de reservas, la restricción contra franjas solapadas y los permisos del módulo.
 3. `src/core/orm/database/scripts/alter-spaces-video.sql` agrega `presentationVideo` a instalaciones existentes si la columna no está creada.
+4. `src/core/orm/database/scripts/init-favorites.sql` crea el índice único de favoritos y registra sus permisos para Admin y User.
 
 La tabla `SpaceRecreationals` se sincroniza al iniciar la API mediante el ORM.
 
