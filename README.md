@@ -11,6 +11,7 @@ Monorepo fullstack compuesto por un backend REST en **Node.js + TypeScript + Exp
 - **Discover rediseñado:** catálogo con tarjetas e imágenes destacadas, filtros por nombre y tipo, orden por precio y detalles con jerarquía visual mejorada.
 - **Video de presentación:** los espacios pueden incluir un video MP4 o WebM de hasta 20 MB, alojado en Supabase Storage.
 - **Registro y Leads:** el registro incluye la aceptación de los términos, la política de privacidad y el tratamiento de datos para que los dueños puedan contactar a posibles clientes con fines comerciales.
+- **Lugares favoritos:** los usuarios pueden marcar espacios con un corazón desde Discover y consultarlos en la sección *Mis lugares favoritos* del panel.
 - **Branding Stepfive:** identidad visual de la cabeza de lobo mediante un logo SVG adaptable al tema claro/oscuro.
 
 Las reservas usan PSE como método registrado, pero por ahora no hay una pasarela de pago real: la confirmación se marca manualmente. También incluye un timeline de reservas para cada usuario y un calendario de reservas recibidas para los dueños.
@@ -32,6 +33,7 @@ Las reservas usan PSE como método registrado, pero por ahora no hay una pasarel
 - Subir portada, galería e inclusive un video de presentación (MP4/WebM, máximo 20 MB) de espacios a Supabase Storage.
 - Consultar las reservas propias en formato timeline.
 - Consultar en un calendario las reservas recibidas de los espacios del dueño.
+- Marcar espacios como favoritos desde Discover y verlos en *Mis lugares favoritos*.
 
 ## Requisitos previos
 
@@ -67,6 +69,7 @@ cp app/.env.example app/.env
 # api/src/core/orm/database/scripts/init.sql
 # api/src/core/orm/database/scripts/init-spaces.sql
 # api/src/core/orm/database/scripts/init-reservations.sql
+# api/src/core/orm/database/scripts/init-favorites.sql
 # api/src/core/orm/database/scripts/alter-spaces-video.sql (si la columna presentationVideo aún no existe)
 # Configura estas variables en app/.env:
 # VITE_SUPABASE_URL=https://<project-ref>.supabase.co

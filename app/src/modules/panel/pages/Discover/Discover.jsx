@@ -10,6 +10,7 @@ import ReservationBooking from '../../components/ReservationBooking/ReservationB
 import { SPACE } from '../../constants/space.constant.mjs'
 import SpaceRecreationalRequester from '../../services/SpaceRecreationalRequester.mjs'
 import Notify from '../../../../core/lib/notify.mjs'
+import useFavorites from '../../hooks/useFavorites'
 
 const PRICE_ORDERS = [
     { key: 'Menor precio', value: 'asc' },
@@ -18,6 +19,7 @@ const PRICE_ORDERS = [
 
 const Discover = () => {
     const { session } = useAuth()
+    const { canUseFavorites, favoriteIds, toggleFavorite } = useFavorites()
     const [spaces, setSpaces] = useState([])
     const [filters, setFilters] = useState({ type: '', search: '', priceOrder: '' })
     const [selectedSpace, setSelectedSpace] = useState(null)
@@ -81,6 +83,8 @@ const Discover = () => {
                 currentUserId={session?.user?.id}
                 onView={viewSpace}
                 onReserve={bookSpace}
+                favoriteIds={favoriteIds}
+                onToggleFavorite={canUseFavorites ? toggleFavorite : undefined}
                 emptyMessage='No encontramos espacios que coincidan con tu búsqueda.'
             />}
         <Modal show={detailOpen} title='Detalle del espacio' size='full' position='center' className='lx-c-modal-space-detail' onClose={() => setDetailOpen(false)}>

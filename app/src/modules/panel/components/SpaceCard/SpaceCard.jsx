@@ -5,8 +5,9 @@ import Icon from '../../../../core/components/Icon/Icon'
 import SpaceConditionTag from '../SpaceConditionTag/SpaceConditionTag'
 import SpaceTypeSelector from '../SpaceTypeSelector/SpaceTypeSelector'
 import SpaceVerificationTag from '../SpaceVerificationTag/SpaceVerificationTag'
+import FavoriteButton from '../FavoriteButton/FavoriteButton'
 
-const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId }) => {
+const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId, isFavorite = false, onToggleFavorite }) => {
     const canReserve = onReserve && space.ownerId !== currentUserId
 
     return (
@@ -17,6 +18,7 @@ const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId }
                     ? <img src={space.coverImage} alt={space.name} />
                     : <Icon name={space.type === 'event_hall' ? 'event' : 'sports_soccer'} size='xxxl' />}
             </div>
+            {onToggleFavorite && <FavoriteButton className='lx-c-space-card-favorite' active={isFavorite} onToggle={() => onToggleFavorite(space)} />}
         </div>
         <div className='lx-c-space-card-content'>
             <div className='lx-c-space-card-summary'>

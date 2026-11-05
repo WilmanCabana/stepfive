@@ -27,6 +27,7 @@
 
 .lx-c-space-card-head {
     width: 100%;
+    position: relative;
     background-image: radial-gradient(var(--lx-color-background-secondary) 8%, transparent 8%);
     background-size: 1rem 1rem;
 }
@@ -183,4 +184,11 @@
 .lx-c-space-card-price {
     color: var(--lx-color-text);
     font-weight: 600;
+}
+
+.lx-c-space-card-favorite {
+    position: absolute;
+    top: .6rem;
+    right: .6rem;
+    z-index: 1;
 }
