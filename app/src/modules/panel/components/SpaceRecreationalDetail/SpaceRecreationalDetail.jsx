@@ -7,6 +7,7 @@ import ImageLightbox from '../../../../core/components/ImageLightbox/ImageLightb
 import SpaceConditionTag from '../../components/SpaceConditionTag/SpaceConditionTag'
 import SpaceVerifyButton from '../../components/SpaceVerifyButton/SpaceVerifyButton'
 import SpaceVerificationTag from '../../components/SpaceVerificationTag/SpaceVerificationTag'
+import SpaceReviews from '../../components/SpaceReviews/SpaceReviews'
 import { SPACE } from '../../constants/space.constant.mjs'
 
 const parseStoredValue = (value) => {
@@ -73,7 +74,7 @@ const conditionLabels = {
     needs_maintenance: 'Mantenimiento'
 }
 
-const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerified, onClose, onReserve, canVerify = false, showPresentationPanel = false }) => {
+const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerified, onClose, onReserve, onRatingChange, focusReviews = false, canVerify = false, showPresentationPanel = false }) => {
     const [lightboxIndex, setLightboxIndex] = useState(null)
     if (!space) return null
     const hours = parseStoredValue(space.openingHours) || {}
@@ -246,6 +247,8 @@ const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerif
                     ['Pista de baile', space.hasDanceFloor], ['Mobiliario', space.hasFurniture], ['Área VIP', space.hasVIPArea]
                 ]} />
             </DetailSection>}
+
+            <SpaceReviews space={space} onRatingChange={onRatingChange} focus={focusReviews} />
 
             <DetailSection icon='verified' title='Estado' className='--state'>
                 <div className='lx-c-space-recreational-detail-grid'>
