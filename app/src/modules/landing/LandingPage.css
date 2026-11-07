@@ -822,3 +822,7 @@
         transition-duration: .01ms !important;
     }
 }
+
+.stepfive-landing-space-rating {
+    margin: 0 0 .6rem;
+}

@@ -7,6 +7,7 @@ import { useTheme } from '../../core/hooks/useTheme'
 import Button from '../../core/components/Button/Button'
 import Logo from '../../core/components/Logo/Logo'
 import SpaceRecreationalRequester from '../panel/services/SpaceRecreationalRequester.mjs'
+import RatingSummary from '../../core/components/RatingSummary/RatingSummary'
 
 const RESERVATION_STEPS = [
     { icon: 'travel_explore', title: 'Encuentra tu espacio', text: 'Explora canchas sintéticas y salones disponibles en Santa Marta.' },
@@ -158,6 +159,7 @@ const LandingPage = () => {
                                             {space.type === 'event_hall' ? 'Salón de eventos' : 'Cancha sintética'}
                                         </span>
                                         <h3>{space.name}</h3>
+                                        <RatingSummary className='stepfive-landing-space-rating' average={space.ratingAverage} count={space.ratingCount} />
                                         <p>
                                             <span className='material-symbols-rounded' translate='no' aria-hidden='true'>location_on</span>
                                             {space.address || 'Santa Marta'}
