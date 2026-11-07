@@ -13,6 +13,7 @@ Interfaz web del proyecto Stepfive. Es una SPA (React 18 + Vite + React Router) 
 | Contacto | `/contact` | Pública | Canal de contacto del proyecto. |
 | Discover | `/panel` | Protegida: `AccessDashboard` | Catálogo de espacios aprobados y filtros. |
 | Mis reservas | `/panel/my-reservations` | Protegida: `ReadReservations` | Timeline y detalles de las reservas propias. |
+| Mis lugares favoritos | `/panel/favorite-spaces` | Protegida: `AccessFavorites` | Espacios marcados con el corazón en Discover. |
 | Mis espacios recreativos | `/panel/space-recreationals` | Protegida: `AccessSpaces` | Administración de espacios, sus imágenes/videos y calendario de reservas. |
 | Usuarios | `/panel/users` | Protegida: `AccessUsers` | Gestión de usuarios. |
 | Autorización | `/panel/authorization` | Protegida: `AccessAuthorization` | Gestión de roles y permisos. |
@@ -26,6 +27,7 @@ Interfaz web del proyecto Stepfive. Es una SPA (React 18 + Vite + React Router) 
 | **Discover**      | `/panel`          | `AccessDashboard`       | Catálogo público de espacios aprobados, filtros y detalles visuales |
 | **Mis espacios recreativos** | `/panel/space-recreationals` | `AccessSpaces` | Gestión en tarjetas/tabla, imágenes, video de presentación y reservas recibidas |
 | **Mis reservas** | `/panel/my-reservations` | `ReadReservations` | Timeline de reservas propias y detalle del espacio y la reserva |
+| **Mis lugares favoritos** | `/panel/favorite-spaces` | `AccessFavorites` | Tarjetas de los espacios guardados como favoritos, con detalle y reserva |
 | **Usuarios**      | `/panel/users`    | `AccessUsers`           | Listado, autorizaciones, roles, detalles y eliminación |
 | **Autorización**  | `/panel/authorization` | `AccessAuthorization` | CRUD de roles y consulta/asignación de permisos |
 
@@ -89,6 +91,16 @@ La portada y la galería se suben a Supabase Storage mediante `src/core/utils/up
 - Para reservar, el usuario elige franjas disponibles y confirma con el método PSE. No hay pasarela de pago real: la API registra la reserva como pagada manualmente y genera una referencia `manual-*`.
 
 Los permisos y el esquema de reservas se preparan ejecutando `api/src/core/orm/database/scripts/init-spaces.sql` y luego `api/src/core/orm/database/scripts/init-reservations.sql` en el SQL Editor de Supabase.
+
+## Favoritos, reseñas y calificaciones
+
+- **Favoritos:** cada tarjeta de Discover tiene un corazón (`FavoriteButton`) para guardar o quitar el espacio. Los guardados se ven en **Mis lugares favoritos** (`/panel/favorite-spaces`). El hook `useFavorites` carga la lista y la mantiene al día sin recargar.
+- **Calificación en tarjetas:** Discover, Mis lugares favoritos y los espacios destacados de la landing muestran el formato compacto `★ 4.0 (127)` (`RatingSummary`). Si el espacio no tiene reseñas, no se muestra nada. En el panel, tocar la calificación abre el detalle y baja directo a las reseñas; en la landing es solo informativa.
+- **Reseñas en el detalle:** la sección `SpaceReviews` muestra el promedio completo `4.0 ★★★★☆ (127)`, el formulario para calificar de 1 a 5 estrellas con comentario opcional (máximo 500 caracteres), la reseña propia con el botón Editar y una vista previa de 3 reseñas de otros usuarios con el botón "Ver todas las reseñas (N)".
+- **Quién puede reseñar:** usuarios con al menos una reserva no cancelada en el espacio; el dueño no puede reseñar su propio espacio. Cada usuario tiene una sola reseña por espacio y puede editarla.
+- **Sin recargar:** al guardar una reseña, la tarjeta de Discover o de Mis lugares favoritos actualiza su promedio de inmediato.
+
+Los permisos de favoritos y reseñas se crean con `api/src/core/orm/database/scripts/init-favorites.sql` e `init-reviews.sql`. Después de correrlos, hay que cerrar sesión y volver a entrar para cargar los permisos nuevos.
 
 ## Integracion de auth
 
@@ -164,7 +176,7 @@ if (hasAuthorities(session, { roles: ['Admin'], permissions: ['CreateUsers'] }))
 ```
 src/
 ├── core/                     # Codigo compartido
-│   ├── components/           # ProtectedRoute, ConnectionWrapper, MapPicker, Table, TabGroup...
+│   ├── components/           # ProtectedRoute, ConnectionWrapper, MapPicker, Table, TabGroup, RatingStars, RatingSummary...
 │   ├── config/               # Configuracion de API, Supabase y Firebase
 │   ├── contexts/             # AuthContext, ThemeContext, NotificationContext
 │   ├── hooks/                # useForm, useLoad, useSync, etc.
@@ -182,9 +194,10 @@ src/
 │   └── panel/                # Panel de administracion
 │       ├── config/               # panel.config.jsx (menu, rutas, permisos)
 │       ├── layouts/              # PanelLayout (sidebar + outlet)
-│       ├── pages/                # Discover, Spaces, MyReservations, Users, Authorization
-│       ├── components/           # Espacios: SpaceRecreationalForm/Detail; reservas: ReservationBooking, ReservationCalendar, SpaceReservations
-│       └── services/             # Requesters de auth, espacios recreativos y reservas
+│       ├── pages/                # Discover, Spaces, MyReservations, FavoriteSpaces, Users, Authorization
+│       ├── components/           # Espacios: SpaceRecreationalForm/Detail; reservas: ReservationBooking, ReservationCalendar, SpaceReservations; FavoriteButton, SpaceReviews
+│       ├── hooks/                # useFavorites
+│       └── services/             # Requesters de auth, espacios, reservas, favoritos y reseñas
 │
 └── main.jsx                  # Entry point, rutas, providers
 ```
