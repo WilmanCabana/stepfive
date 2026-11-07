@@ -51,6 +51,9 @@ export const API = {
     FAVORITES: new EndpointGroup(`${URL_BASE}/favorites`, {
         ALL: '',
         ME: 'me'
+    }),
+    REVIEWS: new EndpointGroup(`${URL_BASE}/reviews`, {
+        SPACE: 'space'
     })
 }
 
