@@ -24,6 +24,7 @@ const Discover = () => {
     const [filters, setFilters] = useState({ type: '', search: '', priceOrder: '' })
     const [selectedSpace, setSelectedSpace] = useState(null)
     const [detailOpen, setDetailOpen] = useState(false)
+    const [focusReviews, setFocusReviews] = useState(false)
     const [bookingOpen, setBookingOpen] = useState(false)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -46,7 +47,9 @@ const Discover = () => {
         .sort((left, right) => filters.priceOrder
             ? (Number(left.pricePerHour) - Number(right.pricePerHour)) * (filters.priceOrder === 'asc' ? 1 : -1)
             : 0)
-    const viewSpace = (space) => { setSelectedSpace(space); setDetailOpen(true) }
+    // reviews = true: abre el detalle y baja directo a la sección de reseñas.
+    const viewSpace = (space, reviews = false) => { setSelectedSpace(space); setFocusReviews(reviews); setDetailOpen(true) }
+    const updateRating = (spaceId, rating) => setSpaces(current => current.map(space => space.id === spaceId ? { ...space, ...rating } : space))
     const bookSpace = (space = selectedSpace) => {
         setSelectedSpace(space)
         setDetailOpen(false)
@@ -81,7 +84,8 @@ const Discover = () => {
             : <SpaceRecreationalCards
                 spaces={visibleSpaces}
                 currentUserId={session?.user?.id}
-                onView={viewSpace}
+                onView={space => viewSpace(space)}
+                onViewReviews={space => viewSpace(space, true)}
                 onReserve={bookSpace}
                 favoriteIds={favoriteIds}
                 onToggleFavorite={canUseFavorites ? toggleFavorite : undefined}
@@ -91,7 +95,9 @@ const Discover = () => {
             <SpaceRecreationalDetail
                 space={selectedSpace}
                 onClose={() => setDetailOpen(false)}
+                focusReviews={focusReviews}
                 onReserve={canReserveSelected ? () => bookSpace() : undefined}
+                onRatingChange={updateRating}
                 showPresentationPanel
             />
         </Modal>
