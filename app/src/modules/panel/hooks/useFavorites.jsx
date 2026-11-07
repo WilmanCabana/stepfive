@@ -44,7 +44,12 @@ const useFavorites = () => {
         }
     }, [favorites])
 
-    return { canUseFavorites, favorites, favoriteIds, toggleFavorite, loading, error }
+    // Actualiza datos de un espacio guardado (por ejemplo, su calificación) sin recargar.
+    const updateFavoriteSpace = useCallback((spaceId, changes) => {
+        setFavorites(current => current.map(space => space.id === spaceId ? { ...space, ...changes } : space))
+    }, [])
+
+    return { canUseFavorites, favorites, favoriteIds, toggleFavorite, updateFavoriteSpace, loading, error }
 }
 
 export default useFavorites

@@ -10,12 +10,14 @@ import useFavorites from '../../hooks/useFavorites'
 
 const FavoriteSpaces = () => {
     const { session } = useAuth()
-    const { favorites, favoriteIds, toggleFavorite, loading, error } = useFavorites()
+    const { favorites, favoriteIds, toggleFavorite, updateFavoriteSpace, loading, error } = useFavorites()
     const [selectedSpace, setSelectedSpace] = useState(null)
     const [detailOpen, setDetailOpen] = useState(false)
+    const [focusReviews, setFocusReviews] = useState(false)
     const [bookingOpen, setBookingOpen] = useState(false)
 
-    const viewSpace = (space) => { setSelectedSpace(space); setDetailOpen(true) }
+    // reviews = true: abre el detalle y baja directo a la sección de reseñas.
+    const viewSpace = (space, reviews = false) => { setSelectedSpace(space); setFocusReviews(reviews); setDetailOpen(true) }
     const bookSpace = (space = selectedSpace) => {
         setSelectedSpace(space)
         setDetailOpen(false)
@@ -37,7 +39,8 @@ const FavoriteSpaces = () => {
             : <SpaceRecreationalCards
                 spaces={favorites}
                 currentUserId={session?.user?.id}
-                onView={viewSpace}
+                onView={space => viewSpace(space)}
+                onViewReviews={space => viewSpace(space, true)}
                 onReserve={bookSpace}
                 onEdit={null}
                 onDelete={null}
@@ -50,7 +53,9 @@ const FavoriteSpaces = () => {
             <SpaceRecreationalDetail
                 space={selectedSpace}
                 onClose={() => setDetailOpen(false)}
+                focusReviews={focusReviews}
                 onReserve={canReserveSelected ? () => bookSpace() : undefined}
+                onRatingChange={updateFavoriteSpace}
                 showPresentationPanel
             />
         </Modal>
