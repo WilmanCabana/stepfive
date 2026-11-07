@@ -6,19 +6,22 @@ import Validator from '../../core/utils/Validator.js'
 import SpaceRecreationalDTO from '../../spaces/dtos/SpaceRecreational.dto.js'
 import { FAVORITE_PERMISSIONS } from '../constants/authorities.js'
 import FavoriteService from '../services/Favorite.service.js'
+import ReviewService from '../../reviews/services/Review.service.js'
 
 @Controller('/favorites')
 export class FavoriteController {
 
     constructor(
         @Inject(FavoriteService)
-        private favoriteService: FavoriteService
+        private favoriteService: FavoriteService,
+        @Inject(ReviewService)
+        private reviewService: ReviewService
     ) { }
 
     @Get('/me')
     @Permissions([FAVORITE_PERMISSIONS.READ])
     async findMine(request, response) {
-        const spaces = await this.favoriteService.findMine(request.user.id)
+        const spaces = await this.reviewService.attachRatings(await this.favoriteService.findMine(request.user.id))
         return response.status(200).json(spaces.map(space => new SpaceRecreationalDTO(space)))
     }
 
