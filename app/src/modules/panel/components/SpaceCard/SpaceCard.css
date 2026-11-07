@@ -192,3 +192,7 @@
     right: .6rem;
     z-index: 1;
 }
+
+.lx-c-space-card-rating {
+    margin-top: .35rem;
+}

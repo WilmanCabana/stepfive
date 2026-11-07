@@ -6,8 +6,9 @@ import SpaceConditionTag from '../SpaceConditionTag/SpaceConditionTag'
 import SpaceTypeSelector from '../SpaceTypeSelector/SpaceTypeSelector'
 import SpaceVerificationTag from '../SpaceVerificationTag/SpaceVerificationTag'
 import FavoriteButton from '../FavoriteButton/FavoriteButton'
+import RatingSummary from '../../../../core/components/RatingSummary/RatingSummary'
 
-const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId, isFavorite = false, onToggleFavorite }) => {
+const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId, isFavorite = false, onToggleFavorite, onViewReviews }) => {
     const canReserve = onReserve && space.ownerId !== currentUserId
 
     return (
@@ -26,6 +27,7 @@ const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId, 
                     <div className='lx-c-space-card-title-group'>
                         <h3 className='lx-c-space-card-name'>{space.name}</h3>
                         <div className='lx-c-space-card-type'><SpaceTypeSelector value={space.type} readOnly /></div>
+                        <RatingSummary className='lx-c-space-card-rating' average={space.ratingAverage} count={space.ratingCount} onClick={onViewReviews ? () => onViewReviews(space) : undefined} />
                     </div>
                     <div className='lx-c-space-card-tags'>
                         <SpaceConditionTag condition={space.condition} />
