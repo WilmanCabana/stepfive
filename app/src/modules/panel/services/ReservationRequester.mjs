@@ -17,6 +17,11 @@ class ReservationRequester extends Requester {
         return unwrap(result)
     }
 
+    static async createReservationsBatch(data) {
+        const result = await super.post(`${API.RESERVATIONS.ENDPOINTS.ALL}batch`, data)
+        return unwrap(result)
+    }
+
     static async getMyReservations() {
         const result = await super.get(API.RESERVATIONS.ENDPOINTS.ME)
         return unwrap(result)
