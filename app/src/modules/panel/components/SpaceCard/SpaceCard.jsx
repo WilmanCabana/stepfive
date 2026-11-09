@@ -9,7 +9,8 @@ import FavoriteButton from '../FavoriteButton/FavoriteButton'
 import RatingSummary from '../../../../core/components/RatingSummary/RatingSummary'
 
 const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId, isFavorite = false, onToggleFavorite, onViewReviews }) => {
-    const canReserve = onReserve && space.ownerId !== currentUserId
+    const isOwner = currentUserId != null && space.ownerId != null && String(space.ownerId) === String(currentUserId)
+    const canReserve = Boolean(onReserve && !isOwner)
 
     return (
     <article className='lx-c-space-card'>
@@ -18,6 +19,7 @@ const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId, 
                 {space.coverImage
                     ? <img src={space.coverImage} alt={space.name} />
                     : <Icon name={space.type === 'event_hall' ? 'event' : 'sports_soccer'} size='xxxl' />}
+                <RatingSummary className='lx-c-space-card-rating' average={space.ratingAverage} count={space.ratingCount} onClick={onViewReviews ? () => onViewReviews(space) : undefined} />
             </div>
             {onToggleFavorite && <FavoriteButton className='lx-c-space-card-favorite' active={isFavorite} onToggle={() => onToggleFavorite(space)} />}
         </div>
@@ -27,7 +29,6 @@ const SpaceCard = ({ space, onView, onReserve, onEdit, onDelete, currentUserId, 
                     <div className='lx-c-space-card-title-group'>
                         <h3 className='lx-c-space-card-name'>{space.name}</h3>
                         <div className='lx-c-space-card-type'><SpaceTypeSelector value={space.type} readOnly /></div>
-                        <RatingSummary className='lx-c-space-card-rating' average={space.ratingAverage} count={space.ratingCount} onClick={onViewReviews ? () => onViewReviews(space) : undefined} />
                     </div>
                     <div className='lx-c-space-card-tags'>
                         <SpaceConditionTag condition={space.condition} />
