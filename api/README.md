@@ -13,6 +13,9 @@ Construido con un **framework custom** sobre Express 5: decoradores para rutas (
 | `Permission`   | `Permissions`    | Permiso granular con tipo (Access, Create, Read, Update, etc.) |
 | `BlockedToken` | `BlockedTokens`  | Tokens JWT revocados (logout)                                  |
 | `SpaceRecreational` | `SpaceRecreationals` | Espacio recreativo; incluye datos descriptivos y URL opcional `presentationVideo` |
+| `Favorite`     | `Favorites`      | Relación entre un usuario y un espacio marcado como favorito   |
+| `Review`       | `Reviews`        | Calificación y comentario de un usuario para un espacio        |
+| `Reservation`  | `Reservations`   | Franja reservada por un usuario para un espacio                |
 
 Relaciones: `UsersRoles` (M2M usuario-rol), `RolesPermissions` (M2M rol-permiso).
 
@@ -257,6 +260,7 @@ Base: `/reservations`
 | Método | Endpoint | Acceso requerido |
 |--------|----------|------------------|
 | `POST` | `/reservations/` | `CreateReservations` |
+| `POST` | `/reservations/batch` | `CreateReservations`; crea varias franjas de forma atómica |
 | `GET` | `/reservations/me` | `ReadReservations` |
 | `GET` | `/reservations/spaces/me` | `ReadReservations` |
 | `GET` | `/reservations/space/:spaceId/availability` | `ReadReservations` |
@@ -265,6 +269,25 @@ Base: `/reservations`
 | `PATCH` | `/reservations/:id/confirm` | `ReadReservations`; el service exige Admin |
 
 El módulo registra `ReadReservations`, `CreateReservations`, `CancelReservations`, `ReadOwnSpaceReservations` y `AccessReservations`. Las rutas usan las protecciones indicadas en la tabla; la consulta de reservas por espacio verifica además que el usuario sea el propietario o Admin.
+
+#### Creación múltiple
+
+`POST /reservations/batch` recibe el espacio, una lista de franjas y notas opcionales. El backend valida cada intervalo, comprueba los solapamientos, calcula cada precio y el total a partir de los datos del espacio, y guarda todas las filas en una única transacción. Si una franja entra en conflicto, no se guarda ninguna. La restricción PostgreSQL de exclusión contra solapamientos sigue protegiendo también frente a solicitudes concurrentes.
+
+**Request:**
+
+```json
+{
+  "spaceId": "UUID_DEL_ESPACIO",
+  "reservations": [
+    { "startAt": "2026-11-13T19:00:00.000Z", "endAt": "2026-11-13T20:00:00.000Z" },
+    { "startAt": "2026-11-14T19:00:00.000Z", "endAt": "2026-11-14T20:00:00.000Z" }
+  ],
+  "notes": "Dos horarios para el mismo espacio"
+}
+```
+
+La respuesta contiene `reservations` con las reservas creadas y `totalPrice` calculado en el servidor. El frontend actualiza la disponibilidad de las fechas seleccionadas antes del envío y presenta la confirmación como una sola acción. PSE continúa siendo un método registrado: no hay integración con una pasarela de pago real y las reservas se marcan pagadas manualmente.
 
 ### `Favorite`
 
@@ -336,6 +359,16 @@ src/
 │   ├── entities/            # SpaceRecreational
 │   ├── repositories/        # Persistencia de espacios
 │   └── services/            # Gestión, Discover y validaciones
+├── favorites/               # Favoritos de usuarios y espacios
+│   ├── controllers/         # Endpoints /favorites
+│   ├── entities/            # Favorite
+│   ├── repositories/        # Persistencia de favoritos
+│   └── services/            # Gestión de favoritos
+├── reviews/                 # Calificaciones y reseñas de espacios
+│   ├── controllers/         # Endpoints /reviews
+│   ├── entities/            # Review
+│   ├── repositories/        # Consultas y persistencia de reseñas
+│   └── services/            # Reglas y agregados de calificación
 └── reservations/            # Reservas y disponibilidad
     ├── controllers/         # Endpoints /reservations
     ├── dtos/                # ReservationDTO
