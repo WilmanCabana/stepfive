@@ -1,12 +1,15 @@
 import './LandingPage.css'
 import { useEffect, useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import PropTypes from 'prop-types'
 import { useAuth } from '../../core/contexts/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
 import Button from '../../core/components/Button/Button'
+import Modal from '../../core/components/Modal/Modal'
 import Logo from '../../core/components/Logo/Logo'
+import Icon from '../../core/components/Icon/Icon'
 import SpaceRecreationalRequester from '../panel/services/SpaceRecreationalRequester.mjs'
+import SpaceRecreationalDetail from '../panel/components/SpaceRecreationalDetail/SpaceRecreationalDetail'
 import RatingSummary from '../../core/components/RatingSummary/RatingSummary'
 
 const RESERVATION_STEPS = [
@@ -24,7 +27,10 @@ const PUBLISHING_STEPS = [
 const LandingPage = () => {
     const { session } = useAuth()
     const { isDarkTheme, setThemePreference } = useTheme()
+    const navigate = useNavigate()
     const [spaces, setSpaces] = useState([])
+    const [selectedSpace, setSelectedSpace] = useState(null)
+    const [detailOpen, setDetailOpen] = useState(false)
     const [loading, setLoading] = useState(true)
     const [loadError, setLoadError] = useState(false)
     const [reloadKey, setReloadKey] = useState(0)
@@ -47,6 +53,8 @@ const LandingPage = () => {
 
         return () => { active = false }
     }, [reloadKey])
+
+    const viewSpace = (space) => { setSelectedSpace(space); setDetailOpen(true) }
 
     if (session) return <Navigate to='/panel' replace />
 
@@ -153,22 +161,24 @@ const LandingPage = () => {
                                             : <span className='material-symbols-rounded' translate='no' aria-hidden='true'>
                                                 {space.type === 'event_hall' ? 'celebration' : 'sports_soccer'}
                                             </span>}
+                                        <RatingSummary className='stepfive-landing-space-rating' average={space.ratingAverage} count={space.ratingCount} />
                                     </div>
                                     <div className='stepfive-landing-space-info'>
                                         <span className='stepfive-landing-space-type'>
                                             {space.type === 'event_hall' ? 'Salón de eventos' : 'Cancha sintética'}
                                         </span>
                                         <h3>{space.name}</h3>
-                                        <RatingSummary className='stepfive-landing-space-rating' average={space.ratingAverage} count={space.ratingCount} />
                                         <p>
                                             <span className='material-symbols-rounded' translate='no' aria-hidden='true'>location_on</span>
                                             {space.address || 'Santa Marta'}
                                         </p>
                                         <strong>${Number(space.pricePerHour || 0).toLocaleString('es-CO')} <small>{space.type === 'event_hall' ? 'por bloque' : '/ hora'}</small></strong>
                                     </div>
-                                    <Link to='/panel' className='stepfive-landing-space-link' aria-label={`Ver ${space.name}`}>
-                                        Ver espacio <span className='material-symbols-rounded' translate='no' aria-hidden='true'>arrow_forward</span>
-                                    </Link>
+                                    <div className='stepfive-landing-space-actions'>
+                                        <Button size='s' width='full' ariaLabel={`Ver ${space.name}`} onClick={() => viewSpace(space)}>
+                                            Ver espacio <Icon name='arrow_forward' />
+                                        </Button>
+                                    </div>
                                 </article>
                             ))}
                         </div>
@@ -229,6 +239,14 @@ const LandingPage = () => {
                 </div>
                 <small className='stepfive-landing-copyright'>© {new Date().getFullYear()} Stepfive · Proyecto académico</small>
             </footer>
+            <Modal show={detailOpen} title='Detalle del espacio' size='full' position='center' className='lx-c-modal-space-detail' onClose={() => setDetailOpen(false)}>
+                <SpaceRecreationalDetail
+                    space={selectedSpace}
+                    onClose={() => setDetailOpen(false)}
+                    onReserve={() => navigate('/auth')}
+                    showPresentationPanel
+                />
+            </Modal>
         </div>
     )
 }

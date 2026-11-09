@@ -310,8 +310,7 @@
     color: var(--lx-color-text-soft);
 }
 
-.stepfive-landing-text-link,
-.stepfive-landing-space-link {
+.stepfive-landing-text-link {
     display: inline-flex;
     align-items: center;
     gap: .35rem;
@@ -346,6 +345,7 @@
     display: grid;
     place-items: center;
     overflow: hidden;
+    position: relative;
     background: linear-gradient(135deg, var(--lx-color-accent-dimed), var(--lx-color-background-secondary));
     color: var(--lx-color-accent);
 }
@@ -358,6 +358,28 @@
 
 .stepfive-landing-space-image > .material-symbols-rounded {
     font-size: 4rem;
+}
+
+.stepfive-landing-space-image .stepfive-landing-space-rating.lx-c-rating-summary {
+    position: absolute;
+    top: .6rem;
+    left: .6rem;
+    z-index: 1;
+    margin: 0;
+    padding: .45rem .6rem;
+    border-radius: var(--lx-border-radius-full, 999px);
+    background: rgba(15, 23, 42, .76);
+    color: #fff;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.stepfive-landing-space-image .stepfive-landing-space-rating strong {
+    color: #fff;
+}
+
+.stepfive-landing-space-image .stepfive-landing-space-rating .lx-c-rating-summary-star {
+    color: #f5c542;
 }
 
 .stepfive-landing-space-info {
@@ -405,12 +427,13 @@
     font-weight: 500;
 }
 
-.stepfive-landing-space-link {
-    width: calc(100% - 2.2rem);
+.stepfive-landing-space-actions {
+    padding: 0 1.1rem 1rem;
+}
+
+.stepfive-landing-space-actions .lx-c-button {
     min-height: 42px;
-    margin: 0 1.1rem 1rem;
     justify-content: space-between;
-    border-top: var(--lx-primary-border);
 }
 
 .stepfive-landing-feedback {
