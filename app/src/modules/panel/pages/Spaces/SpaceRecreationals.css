@@ -26,6 +26,9 @@
 .lx-p-spaces-actions { width: 100%; display: flex; gap: .5rem; border-bottom: var(--lx-primary-border); }
 .lx-p-spaces-cards { width: 100%; display: flex; flex-direction: column; gap: 1rem; }
 .lx-p-spaces-table { width: 100%; }
+.lx-p-spaces-commission-notice { padding: 1rem; color: var(--lx-color-text); }
+.lx-p-spaces-commission-notice p { margin: 0; line-height: 1.6; }
+.lx-p-spaces-commission-actions { margin-top: 1.5rem; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .75rem; }
 
 @media (max-width: 700px) {
 	.lx-p-spaces { padding: 1rem; }
