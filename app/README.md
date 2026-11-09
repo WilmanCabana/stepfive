@@ -18,6 +18,10 @@ Interfaz web del proyecto Stepfive. Es una SPA (React 18 + Vite + React Router) 
 | Usuarios | `/panel/users` | Protegida: `AccessUsers` | Gestión de usuarios. |
 | Autorización | `/panel/authorization` | Protegida: `AccessAuthorization` | Gestión de roles y permisos. |
 
+### Landing Page pública y Login
+
+La ruta `/` no requiere autenticación. Presenta Stepfive, permite explorar espacios destacados y abre el detalle en un modal de solo lectura. El botón de reserva de ese detalle redirige a `/auth`; tras iniciar sesión, las demás funciones de gestión y reserva se usan dentro del panel protegido. La ruta `/auth` ofrece Login y registro y también funciona como destino de las acciones públicas que requieren una cuenta.
+
 ### Que ve el usuario
 
 | Pantalla          | Ruta              | Permiso requerido      | Que hace                                                              |
@@ -35,11 +39,13 @@ Funcionalidades transversales: tema claro/oscuro, deteccion de conexion offline,
 
 ## Experiencia de usuario y accesibilidad
 
-La versión 3.0.0 aplica mejoras UX/UI a filtros, tarjetas, modales y jerarquía visual; también procura controles con etiquetas accesibles, navegación por teclado y contraste coherente con los temas claro y oscuro.
+La versión 3.0.0 aplica principios y leyes UX para mejorar jerarquía, consistencia y visibilidad de las acciones, reducir fricción en la exploración y la publicación, y mantener controles accesibles, navegación por teclado y contraste coherente con los temas claro y oscuro.
+
+Las tarjetas muestran la calificación en una píldora oscura superpuesta a la imagen, con estrella dorada, promedio y cantidad de reseñas. En el panel, la píldora es interactiva y abre el detalle desplazándose a la sección de reseñas; en la Landing Page es informativa. La creación de un espacio muestra antes el aviso de comisión del 14%, con opciones para continuar o cancelar. En Discover, las acciones para publicar aparecen junto al encabezado para los usuarios que tienen permiso de crear espacios.
 
 ### Video y vista de detalles
 
-En Discover, el detalle del espacio usa un diseño split-screen: reproductor de video a la izquierda y la información del espacio en una columna independiente con scroll a la derecha. En móvil, las columnas se apilan. Si no hay video, se muestra un placeholder. Los videos MP4 y WebM de hasta 20 MB se guardan en la carpeta `videos/` del bucket Supabase Storage `space-images`; las imágenes continúan usando su flujo existente.
+En Discover y en las vistas de detalle que reutilizan el componente, se puede mostrar un visor de video en un diseño split-screen: reproductor de video a la izquierda y la información del espacio en una columna independiente con scroll a la derecha. En móvil, las columnas se apilan. Si no hay video, se muestra un placeholder. Los videos MP4 y WebM de hasta 20 MB se guardan en la carpeta `videos/` del bucket Supabase Storage `space-images`; las imágenes continúan usando su flujo existente.
 
 ### Landing Page y marca
 
@@ -89,8 +95,13 @@ La portada y la galería se suben a Supabase Storage mediante `src/core/utils/up
 - **Mis espacios recreativos (`/panel/space-recreationals`)** permite gestionar espacios en tarjetas o tabla. Su tercera pestaña, **Reservas**, presenta el calendario y las reservas recibidas para los espacios del propietario.
 - **Mis reservas (`/panel/my-reservations`)** presenta las reservas propias en un timeline. Al seleccionar una, abre el detalle completo del espacio junto con los datos de esa reserva.
 - Para reservar, el usuario elige franjas disponibles y confirma con el método PSE. No hay pasarela de pago real: la API registra la reserva como pagada manualmente y genera una referencia `manual-*`.
+- **Reservas múltiples:** en el modal de reserva se pueden elegir varias franjas discontinuas del mismo espacio, incluso de diferentes fechas. La selección queda en un carrito temporal al cambiar el día; se puede quitar cada franja, consultar el total y confirmar el conjunto en una sola acción. Antes de enviar, la app vuelve a consultar disponibilidad. `POST /reservations/batch` valida y calcula los precios en el servidor y crea todas las reservas en una transacción atómica; si alguna entra en conflicto, no se crea ninguna. La confirmación es una sola interacción, no un cobro real: PSE sigue simulado y cada reserva se marca pagada manualmente.
 
 Los permisos y el esquema de reservas se preparan ejecutando `api/src/core/orm/database/scripts/init-spaces.sql` y luego `api/src/core/orm/database/scripts/init-reservations.sql` en el SQL Editor de Supabase.
+
+### Scroll del panel
+
+El layout del panel conserva el sidebar fijo y asigna el scroll vertical al contenedor común de las rutas bajo el encabezado. Así Discover, Mis reservas, Mis espacios, Usuarios y las demás secciones pueden desplazarse cuando su contenido supera la altura disponible, sin depender del scroll de `body`.
 
 ## Favoritos, reseñas y calificaciones
 
