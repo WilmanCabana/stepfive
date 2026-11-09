@@ -2,7 +2,7 @@ import './SpaceRecreationalCards.css'
 import SpaceCard from '../SpaceCard/SpaceCard'
 import Empity from '../../../../core/components/Empity/Empity'
 
-const SpaceRecreationalCards = ({ spaces = [], onDelete = () => { }, onEdit = () => { }, onView = () => { }, onReserve, currentUserId, emptyMessage, emptyIcon, favoriteIds, onToggleFavorite, onViewReviews }) => (
+const SpaceRecreationalCards = ({ spaces = [], onDelete, onEdit, onView = () => { }, onReserve, currentUserId, emptyMessage, emptyIcon, favoriteIds, onToggleFavorite, onViewReviews }) => (
     <div className='lx-c-space-recreationals'>
         {spaces.length > 0
             ? <div className='lx-c-space-recreationals-content'>
