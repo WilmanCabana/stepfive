@@ -101,7 +101,7 @@ export class SpaceRecreationalService {
         if (data.fieldType !== undefined) Validator.isIn({ fieldType: data.fieldType }, SPACE_FIELD_TYPES)
         if (data.email) Validator.email({ email: data.email })
 
-        for (const field of ['instagram', 'facebook', 'coverImage']) {
+        for (const field of ['instagram', 'facebook', 'coverImage', 'presentationVideo']) {
             if (data[field] !== undefined && data[field] !== '') Validator.url({ [field]: data[field] })
         }
 

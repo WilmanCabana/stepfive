@@ -2,6 +2,8 @@ import DTO from '../../core/orm/dto/Base.dto.js'
 import SpaceRecreational from '../entities/SpaceRecreational.entity.js'
 
 export class SpaceRecreationalDTO extends DTO<SpaceRecreational> {
+    declare presentationVideo: string | null
+
     constructor(entity: Partial<SpaceRecreational>) {
         super(entity)
     }

@@ -177,6 +177,75 @@ export class ReservationService {
         }
     }
 
+    async createBatch(data: any, actor: any) {
+        const { spaceId, reservations, notes } = data || {}
+        Validator.required({ spaceId })
+        Validator.isUUID({ spaceId })
+        if (!actor?.id) throw new ForbiddenError('Debes iniciar sesión para reservar')
+        if (!Array.isArray(reservations) || reservations.length === 0) {
+            throw new InvalidFormatError('Debes seleccionar al menos una franja')
+        }
+        if (notes !== undefined && notes !== null && String(notes).length > 2000) {
+            throw new InvalidFormatError('Las notas no pueden superar 2000 caracteres')
+        }
+
+        const space = await this.getSpace(spaceId)
+        if (space.ownerId === actor.id) throw new ForbiddenError('No puedes reservar tu propio espacio')
+
+        const intervals = reservations.map((reservation: any) => {
+            const startAt = parseDateTime(reservation?.startAt, 'startAt')
+            const endAt = parseDateTime(reservation?.endAt, 'endAt')
+            if (endAt <= startAt) throw new InvalidFormatError('endAt debe ser posterior a startAt')
+            const durationMinutes = this.validateWindow(space, startAt, endAt)
+            return { startAt, endAt, durationMinutes }
+        }).sort((left: any, right: any) => left.startAt.getTime() - right.startAt.getTime())
+
+        if (intervals.some((interval: any, index: number) =>
+            index > 0 && intervals[index - 1].endAt > interval.startAt
+        )) {
+            throw new InvalidFormatError('Las franjas seleccionadas no pueden solaparse')
+        }
+
+        for (const interval of intervals) {
+            if ((await this.reservationRepository.findOverlapping(spaceId, interval.startAt, interval.endAt)).length > 0) {
+                throw new AlreadyExistError('Una de las franjas seleccionadas ya está reservada')
+            }
+        }
+
+        const paymentReference = `manual-${Date.now()}`
+        const entityNotes = notes ? String(notes).trim() : null
+        const entities: Partial<Reservation>[] = intervals.map((interval: any) => ({
+            spaceId,
+            userId: actor.id,
+            startAt: interval.startAt,
+            endAt: interval.endAt,
+            totalPrice: this.getPrice(space, interval.durationMinutes),
+            status: 'paid',
+            paymentMethod: 'pse',
+            paymentReference,
+            notes: entityNotes
+        }))
+
+        try {
+            const created = await this.reservationRepository.createBatch(entities)
+            const loaded = await Promise.all(created.map(reservation =>
+                this.reservationRepository.findById(reservation.id, false, { relations: true })
+            ))
+            const persisted: Reservation[] = []
+            for (const reservation of loaded) {
+                if (!reservation) throw new Error('No fue posible recuperar una reserva creada')
+                persisted.push(reservation)
+            }
+            return {
+                reservations: persisted,
+                totalPrice: entities.reduce((total, entity) => total + Number(entity.totalPrice), 0)
+            }
+        } catch (error: any) {
+            if (error?.code === '23P01') throw new AlreadyExistError('Una de las franjas seleccionadas ya está reservada')
+            throw error
+        }
+    }
+
     async findMine(userId: string) {
         return this.reservationRepository.findManyByUserId(userId)
     }

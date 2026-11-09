@@ -1,10 +1,23 @@
-# Stepfive (Inno Project) 1.0.3v
+# Stepfive (Inno Project) v3.0.0
 
 Monorepo fullstack compuesto por un backend REST en **Node.js + TypeScript + Express 5 + PostgreSQL** y un frontend en **Vite + React**. El proyecto implementa un sistema completo de autenticación y autorización basado en roles y permisos, con una arquitectura modular en capas y un ORM personalizado construido desde cero.
 
 ### Novedades de esta versión
 
-El sistema ahora permite registrar y gestionar canchas sintéticas y salones de eventos, consultar desde Discover el catálogo público de espacios aprobados y reservar sus franjas disponibles. Las reservas usan PSE como método registrado, pero por ahora no hay una pasarela de pago real: la confirmación se marca manualmente. También incluye carga de imágenes de espacios a Supabase Storage, un timeline de reservas para cada usuario y un calendario de reservas recibidas para los dueños.
+**Stepfive v3.0.0** incorpora una Landing Page pública y una actualización importante de la experiencia de búsqueda y publicación:
+
+- **Inicio público:** presenta la plataforma y explica cómo explorar/reservar a clientes y cómo publicar/administrar espacios a sus propietarios.
+- **Interfaz renovada con principios UX:** mejoras de jerarquía visual, accesibilidad, filtros, tarjetas y modales para hacer más claros los flujos principales.
+- **Discover rediseñado:** catálogo con tarjetas e imágenes destacadas, filtros por nombre y tipo, orden por precio y detalles con jerarquía visual mejorada.
+- **Video de presentación:** los espacios pueden incluir un video MP4 o WebM de hasta 20 MB, alojado en Supabase Storage.
+- **Registro y Leads:** el registro incluye la aceptación de los términos, la política de privacidad y el tratamiento de datos para que los dueños puedan contactar a posibles clientes con fines comerciales.
+- **Lugares favoritos:** los usuarios pueden marcar espacios con un corazón desde Discover y consultarlos en la sección *Mis lugares favoritos* del panel.
+- **Reseñas y calificaciones:** quien reservó un espacio puede calificarlo de 1 a 5 estrellas con un comentario opcional (una reseña editable por usuario). Las tarjetas muestran ★ 4.0 (127) y el detalle el promedio con la lista de reseñas; los espacios sin reseñas no muestran estrellas.
+- **Reservas múltiples:** el usuario puede seleccionar varias franjas —incluidas fechas distintas— en un carrito temporal y confirmar el conjunto en una sola acción; el backend las crea de forma atómica.
+- **Publicación de espacios:** antes de iniciar la creación, se informa que Stepfive cobrará una comisión del 14% sobre cada transacción o reserva realizada en el espacio.
+- **Branding Stepfive:** identidad visual de la cabeza de lobo mediante un logo SVG adaptable al tema claro/oscuro.
+
+Las reservas usan PSE como método registrado, pero por ahora no hay una pasarela de pago real: la confirmación se marca manualmente. También incluye un timeline de reservas para cada usuario y un calendario de reservas recibidas para los dueños.
 
 ### Que se puede hacer hoy
 
@@ -15,12 +28,18 @@ El sistema ahora permite registrar y gestionar canchas sintéticas y salones de 
 - Consultar permisos: listado con filtros por tipo.
 - Proteger rutas del frontend por roles y permisos.
 - Tema claro/oscuro.
+- Landing Page pública para clientes y propietarios de espacios.
+- Explorar espacios destacados y abrir su detalle desde la Landing Page pública, sin iniciar sesión; el acceso se solicita al intentar reservar.
+- Páginas públicas de términos (`/terms`), privacidad (`/privacy`) y contacto (`/contact`), implementadas en [PublicPages.jsx](./app/src/modules/public-pages/PublicPages.jsx).
 - Registrar y gestionar espacios recreativos: canchas sintéticas y salones de eventos.
-- Consultar en Discover los espacios aprobados y sus detalles mediante el endpoint público del catálogo.
-- Reservar espacios disponibles con PSE registrado; el pago se confirma manualmente y no usa una pasarela real.
-- Subir portadas y galería de espacios a Supabase Storage.
+- Consultar en Discover los espacios aprobados con filtros, tarjetas visuales y detalles mejorados.
+- Reservar una o varias franjas disponibles de un mismo espacio en una operación atómica; el pago se registra manualmente y no usa una pasarela real.
+- Subir portada, galería e inclusive un video de presentación (MP4/WebM, máximo 20 MB) de espacios a Supabase Storage.
 - Consultar las reservas propias en formato timeline.
 - Consultar en un calendario las reservas recibidas de los espacios del dueño.
+- Marcar espacios como favoritos desde Discover y verlos en *Mis lugares favoritos*.
+- Calificar y reseñar los espacios reservados; ver el promedio en las tarjetas y las reseñas en el detalle.
+- Interfaz rediseñada con principios y leyes UX: jerarquía clara, controles consistentes, calificaciones destacadas y flujos simplificados.
 
 ## Requisitos previos
 
@@ -29,7 +48,7 @@ El sistema ahora permite registrar y gestionar canchas sintéticas y salones de 
 | Node.js     | 18 LTS         |
 | pnpm        | 8+             |
 | Supabase    | Opcional, solo para desarrollo local |
-| Supabase Storage | Bucket público `space-images` para subir imágenes de espacios |
+| Supabase Storage | Bucket público `space-images` para imágenes y videos de espacios |
 
 ## Quick Start
 
@@ -47,13 +66,20 @@ cp api/.env.example api/.env
 cp app/.env.example app/.env
 # Edita app/.env con la URL del backend
 
-# 4. Configurar Supabase para espacios y reservas
+# 4. Configurar Supabase para espacios, reservas, favoritos y reseñas
 # Primero inicia la API una vez para que el ORM sincronice las tablas; luego detenla.
 # En Storage, crea el bucket público `space-images`.
-# En SQL Editor ejecuta, en este orden:
+# Permite los tipos image/png, image/jpeg, image/webp, video/mp4 y video/webm.
+# Para videos, configura un límite de tamaño de al menos 20 MB.
+# En SQL Editor ejecuta los scripts SQL mantenidos por el equipo, en este orden:
 # api/src/core/orm/database/scripts/init.sql
 # api/src/core/orm/database/scripts/init-spaces.sql
 # api/src/core/orm/database/scripts/init-reservations.sql
+# api/src/core/orm/database/scripts/init-favorites.sql
+# api/src/core/orm/database/scripts/init-reviews.sql
+# api/src/core/orm/database/scripts/alter-spaces-video.sql
+# Este último script agrega presentationVideo para instalaciones existentes;
+# ejecútalo solo si esa columna aún no existe.
 # Configura estas variables en app/.env:
 # VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 # VITE_SUPABASE_ANON_KEY=<anon-key>
@@ -66,7 +92,7 @@ pnpm run dev --prefix app   # http://localhost:5173
 ### Verificar que funciona
 
 - Backend: abre `http://localhost:3000/api/v1/auth/health` y espera un JSON con `"status": "ok"`.
-- Frontend: abre `http://localhost:5173` y deberia cargar la pantalla de login.
+- Frontend: abre `http://localhost:5173` y debería cargar la Landing Page pública de Stepfive.
 
 ## Estructura del Monorepo
 
@@ -84,7 +110,12 @@ stepfive/
 ├── app/          # Frontend — React 18, Vite, React Router
 │   └── src/
 │       ├── core/     # Componentes, contextos, hooks, servicios y estilos compartidos
-│       └── modules/  # auth y panel (Discover, espacios, reservas, usuarios y roles)
+│       │   └── components/Logo/ # Logo SVG Stepfive adaptable al tema
+│       ├── modules/
+│       │   ├── landing/       # Landing Page pública
+│       │   ├── public-pages/  # Términos, privacidad y contacto
+│       │   ├── auth/          # Login y registro
+│       │   └── panel/         # Discover, espacios, reservas, usuarios y roles
 └── README.md
 ```
 
@@ -130,4 +161,6 @@ pnpm dlx concurrently "pnpm run dev --prefix api" "pnpm run dev --prefix app"
 ## Documentacion detallada
 
 - [api/README.md](./api/README.md) — variables de entorno, base de datos y endpoints de auth, espacios y reservas.
-- [app/README.md](./app/README.md) — servidor de desarrollo, AuthContext, Discover y flujo de reservas.
+- [app/README.md](./app/README.md) — rutas públicas y protegidas, Landing Page, identidad Stepfive, Discover y reservas.
+- Rutas legales de la app: `/terms` y `/privacy`, implementadas en [PublicPages.jsx](./app/src/modules/public-pages/PublicPages.jsx).
+- Logo SVG de la cabeza de lobo: [componente Logo](./app/src/core/components/Logo/Logo.jsx), usado en la Landing Page y el resto de la interfaz.

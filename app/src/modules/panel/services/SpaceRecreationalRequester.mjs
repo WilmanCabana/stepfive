@@ -18,6 +18,9 @@ class SpaceRecreationalRequester extends Requester {
         const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value !== undefined && value !== ''))
         const query = params.size ? `?${params.toString()}` : ''
         const result = await super.get(`${API.SPACE_RECREATIONAL.ENDPOINTS.DISCOVER}${query}`)
+        if (!result.ok) {
+            throw new Error(result.message || 'No fue posible cargar los espacios.')
+        }
         return result.data
     }
 

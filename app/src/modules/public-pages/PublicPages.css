@@ -1,0 +1,179 @@
+.stepfive-public-page {
+    width: 100%;
+    height: 100vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    color: var(--lx-color-text);
+    background: var(--lx-color-background-primary);
+}
+
+.stepfive-public-header,
+.stepfive-public-footer {
+    width: min(100% - 3rem, 1120px);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.stepfive-public-header {
+    min-height: 76px;
+    justify-content: space-between;
+    border-bottom: var(--lx-primary-border);
+}
+
+.stepfive-public-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    color: var(--lx-color-text);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.stepfive-public-brand .lx-c-logo {
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+}
+
+.stepfive-public-header nav {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.stepfive-public-header nav a,
+.stepfive-public-footer a {
+    color: var(--lx-color-text-soft);
+    font-size: .88rem;
+}
+
+.stepfive-public-header nav a:hover,
+.stepfive-public-footer a:hover {
+    color: var(--lx-color-accent);
+}
+
+.stepfive-public-theme {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: var(--lx-primary-border);
+    border-radius: var(--lx-border-radius-full);
+    color: var(--lx-color-text);
+    background: var(--lx-color-background-primary);
+    cursor: pointer;
+}
+
+.stepfive-public-theme:hover {
+    background: var(--lx-color-background-primary-hover);
+}
+
+.stepfive-public-content {
+    width: min(100% - 3rem, 800px);
+    flex: 1;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 7vw, 5rem) 0;
+}
+
+.stepfive-public-eyebrow {
+    margin: 0 0 .75rem;
+    color: var(--lx-color-accent);
+    font-size: .75rem;
+    font-weight: 750;
+    letter-spacing: .12em;
+}
+
+.stepfive-public-content > h1 {
+    margin: 0 0 2.5rem;
+    font-size: clamp(2.25rem, 6vw, 3.5rem);
+    letter-spacing: -.06em;
+}
+
+.stepfive-public-content section {
+    margin: 0 0 1.5rem;
+    padding: 1.35rem;
+    border: var(--lx-primary-border);
+    border-radius: var(--lx-border-radius-m);
+    background: var(--lx-color-background-special);
+}
+
+.stepfive-public-content section h2 {
+    margin: 0 0 .6rem;
+    font-size: 1.1rem;
+}
+
+.stepfive-public-content section p {
+    margin: 0;
+    color: var(--lx-color-text-soft);
+    font-size: .95rem;
+    line-height: 1.7;
+}
+
+.stepfive-public-content section a:not(.stepfive-public-contact-link) {
+    color: var(--lx-color-accent);
+}
+
+.stepfive-public-contact-link {
+    margin-top: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    color: var(--lx-color-accent);
+    font-weight: 650;
+}
+
+.stepfive-public-footer {
+    min-height: 64px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    border-top: var(--lx-primary-border);
+}
+
+.stepfive-public-footer span {
+    color: var(--lx-color-text-softest);
+    font-size: .8rem;
+}
+
+.stepfive-public-page a:focus-visible,
+.stepfive-public-page button:focus-visible {
+    outline: 3px solid var(--lx-color-accent);
+    outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+    .stepfive-public-header,
+    .stepfive-public-footer,
+    .stepfive-public-content {
+        width: calc(100% - 2rem);
+    }
+
+    .stepfive-public-header {
+        min-height: 70px;
+        flex-wrap: wrap;
+        padding: .5rem 0;
+        gap: .7rem;
+    }
+
+    .stepfive-public-header nav {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        gap: .5rem;
+        padding-bottom: .35rem;
+    }
+
+    .stepfive-public-header nav a {
+        font-size: .78rem;
+    }
+
+    .stepfive-public-content {
+        padding: 2rem 0;
+    }
+
+    .stepfive-public-content section {
+        padding: 1rem;
+    }
+}

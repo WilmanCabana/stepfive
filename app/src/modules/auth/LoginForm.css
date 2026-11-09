@@ -19,6 +19,7 @@
 .lx-m-authentication-login-container {
     width: 100%;
     max-width: 380px;
+    max-height: calc(100vh - 2rem);
     overflow: auto;
     background: var(--lx-color-background-primary);
     border-radius: var(--lx-border-radius-m);
@@ -28,6 +29,12 @@
     padding: 3rem;
     position: relative;
     box-shadow: rgba(0, 0, 0, 0.1) 0px -2px 1px 0px inset, 0 0 2px 0 rgba(0, 0, 0, .1);
+}
+
+@supports (height: 100dvh) {
+    .lx-m-authentication-login-container {
+        max-height: calc(100dvh - 2rem);
+    }
 }
 
 [data-theme="dark"] .lx-m-authentication-login-container {
@@ -182,4 +189,15 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+@media (max-width: 480px) {
+    .lx-m-authentication-login {
+        padding: .5rem;
+    }
+
+    .lx-m-authentication-login-container {
+        padding: 2rem 1.25rem;
+        border-radius: var(--lx-border-radius-s);
+    }
 }

@@ -11,8 +11,22 @@
   font-size: inherit;
   position: relative;
   cursor: pointer;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   user-select: none;
+}
+
+.lx-c-button:focus-visible {
+  outline: 3px solid var(--lx-color-accent);
+  outline-offset: 3px;
+  z-index: 1;
+}
+
+.lx-c-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.lx-c-button:disabled {
+  cursor: not-allowed;
 }
 
 .lx-c-button-content {

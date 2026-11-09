@@ -1,10 +1,12 @@
 import './Modal.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
+import PropTypes from 'prop-types'
 import Button from '../Button/Button'
 import Loader from '../Loader/Loader'
 
-const Modal = ({ show, title, position = 'center', size = 'middle', children, onClose }) => {
+const Modal = ({ show, title, position = 'center', size = 'middle', className = '', children, onClose }) => {
   const [active, setActive] = useState(show)
+  const titleId = useId()
 
   useEffect(() => {
     let timeout
@@ -27,7 +29,7 @@ const Modal = ({ show, title, position = 'center', size = 'middle', children, on
       window.addEventListener('keydown', handleKeyDown)
     }
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [show])
+  }, [show, onClose])
 
   const handleBackdropClick = (event) => {
     if (event.target.classList.contains('lx-c-modal')) {
@@ -39,14 +41,14 @@ const Modal = ({ show, title, position = 'center', size = 'middle', children, on
 
   return (
     <div
-      className={`lx-c-modal ${position} ${size} ${show ? '--active' : '--inactive'}`}
+      className={`lx-c-modal ${position} ${size} ${className} ${show ? '--active' : '--inactive'}`}
       onClick={handleBackdropClick}
     >
-      <div className='lx-c-modal-container'>
+      <div className='lx-c-modal-container' role='dialog' aria-modal='true' aria-labelledby={titleId}>
         <Loader loading={!show} animated={false} />
         <div className='lx-c-modal-header'>
-          <h3>{title}</h3>
-          <Button size='xs' color='auto' variant='plain' icon onClick={onClose}>
+          <h3 id={titleId}>{title}</h3>
+          <Button size='xs' color='auto' variant='plain' icon ariaLabel='Cerrar' onClick={onClose}>
             <span className='material-symbols-rounded' translate='no'>close</span>
           </Button>
         </div>
@@ -56,6 +58,16 @@ const Modal = ({ show, title, position = 'center', size = 'middle', children, on
       </div>
     </div>
   )
+}
+
+Modal.propTypes = {
+  show: PropTypes.bool.isRequired,
+  title: PropTypes.string.isRequired,
+  position: PropTypes.oneOf(['center', 'left', 'right']),
+  size: PropTypes.oneOf(['min', 'middle', 'standar', 'large', 'max', 'full']),
+  className: PropTypes.string,
+  children: PropTypes.node,
+  onClose: PropTypes.func,
 }
 
 export default Modal

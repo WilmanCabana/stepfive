@@ -36,6 +36,7 @@ export const SPACE = {
             allowsMusic: false,
             openingHours: {},
             coverImage: '',
+            presentationVideo: '',
             gallery: [],
             fieldType: 'futbol5',
             fieldDimensions: '',

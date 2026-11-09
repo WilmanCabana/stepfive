@@ -35,6 +35,7 @@
 .lx-m-authentication-register-container {
     width: 100%;
     max-width: 1000px;
+    max-height: calc(100vh - 2rem);
     overflow: auto;
     background: var(--lx-color-background-primary);
     border-radius: var(--lx-border-radius-m);
@@ -214,9 +215,62 @@
     user-select: none;
 }
 
+.lx-m-authentication-register-consent {
+    max-width: 580px;
+    margin: 1.5rem auto 0;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    border: var(--lx-primary-border);
+    border-radius: var(--lx-border-radius-s);
+    color: var(--lx-color-text-soft);
+    font-size: .9rem;
+    line-height: 1.55;
+    cursor: pointer;
+}
+
+.lx-m-authentication-register-consent input {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    margin-top: .1rem;
+    accent-color: var(--lx-color-accent);
+}
+
+.lx-m-authentication-register-consent a {
+    color: var(--lx-color-accent);
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.lx-m-authentication-register-consent-error {
+    margin: .5rem auto 0;
+    color: var(--lx-color-danger);
+    font-size: .82rem;
+    text-align: center;
+}
+
 @media screen and (max-width: 800px) {
     .lx-m-authentication-register-form-content {
         flex-direction: column-reverse;
         align-items: center;
+    }
+
+    .lx-m-authentication-register-container {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .lx-m-authentication-register {
+        padding: .5rem;
+    }
+
+    .lx-m-authentication-register-container {
+        max-height: calc(100vh - 1rem);
+        padding: 1.5rem 1rem;
+        border-radius: var(--lx-border-radius-s);
     }
 }

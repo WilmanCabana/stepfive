@@ -3,6 +3,7 @@ import Users from '../pages/Users/Users'
 import Authorization from '../pages/Authorization/Authorization'
 import SpaceRecreationals from '../pages/Spaces/SpaceRecreationals'
 import MyReservations from '../pages/MyReservations/MyReservations'
+import FavoriteSpaces from '../pages/FavoriteSpaces/FavoriteSpaces'
 
 export const AUTHORITIES = {
   PANEL: {
@@ -36,6 +37,7 @@ export const MENU = [
     },
     items: []
   },
+ 
   {
     label: 'Autorizaciones',
     icon: 'shield_toggle',
@@ -69,6 +71,18 @@ export const MENU = [
     element: <SpaceRecreationals />,
     authorities: {
       permissions: ['AccessSpaces'] // AccessSpacesReacreationals
+    },
+    items: []
+  },
+   {
+    label: 'Mis lugares favoritos',
+    icon: 'favorite',
+    description: 'Espacios recreativos que guardaste como favoritos',
+    to: 'favorite-spaces',
+    path: 'favorite-spaces',
+    element: <FavoriteSpaces />,
+    authorities: {
+      permissions: ['AccessFavorites']
     },
     items: []
   }
