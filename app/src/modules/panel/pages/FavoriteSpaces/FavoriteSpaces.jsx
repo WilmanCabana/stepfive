@@ -23,7 +23,10 @@ const FavoriteSpaces = () => {
         setDetailOpen(false)
         setBookingOpen(true)
     }
-    const canReserveSelected = selectedSpace?.ownerId !== session?.user?.id
+    const isOwnerSelected = selectedSpace?.ownerId != null
+        && session?.user?.id != null
+        && String(selectedSpace.ownerId) === String(session.user.id)
+    const canReserveSelected = !isOwnerSelected
 
     return <div className='lx-p-favorite-spaces'>
         <header className='lx-p-favorite-spaces-head'>
@@ -63,9 +66,9 @@ const FavoriteSpaces = () => {
             {selectedSpace && <ReservationBooking
                 space={selectedSpace}
                 onCancel={() => setBookingOpen(false)}
-                onCreated={() => {
+                onCreated={({ reservations = [] } = {}) => {
                     setBookingOpen(false)
-                    Notify.notice('Reserva creada y pagada.', 'success')
+                    Notify.notice(reservations.length === 1 ? 'Reserva creada y pagada.' : 'Reservas creadas y pagadas.', 'success')
                 }}
             />}
         </Modal>
