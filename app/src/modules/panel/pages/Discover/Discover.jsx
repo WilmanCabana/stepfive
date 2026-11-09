@@ -1,9 +1,12 @@
 import './Discover.css'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../../core/contexts/AuthContext'
 import Input from '../../../../core/components/Input/Input'
 import Modal from '../../../../core/components/Modal/Modal'
 import Select from '../../../../core/components/Select/Select'
+import Button from '../../../../core/components/Button/Button'
+import Icon from '../../../../core/components/Icon/Icon'
 import SpaceRecreationalCards from '../../components/SpaceRecreationalCards/SpaceRecreationalCards'
 import SpaceRecreationalDetail from '../../components/SpaceRecreationalDetail/SpaceRecreationalDetail'
 import ReservationBooking from '../../components/ReservationBooking/ReservationBooking'
@@ -18,7 +21,8 @@ const PRICE_ORDERS = [
 ]
 
 const Discover = () => {
-    const { session } = useAuth()
+    const { session, hasAuthorities } = useAuth()
+    const navigate = useNavigate()
     const { canUseFavorites, favoriteIds, toggleFavorite } = useFavorites()
     const [spaces, setSpaces] = useState([])
     const [filters, setFilters] = useState({ type: '', search: '', priceOrder: '' })
@@ -55,13 +59,25 @@ const Discover = () => {
         setDetailOpen(false)
         setBookingOpen(true)
     }
-    const canReserveSelected = selectedSpace?.ownerId !== session?.user?.id
+    const isOwnerSelected = selectedSpace?.ownerId != null
+        && session?.user?.id != null
+        && String(selectedSpace.ownerId) === String(session.user.id)
+    const canReserveSelected = !isOwnerSelected
+    const canPublishSpace = hasAuthorities(session, { permissions: ['AccessSpaces', 'CreateSpaces'] })
 
     return <div className='lx-p-discover'>
         <header className='lx-p-discover-head'>
-            <div>
-                <p>Espacios recreativos</p>
-                <h1>Descubre espacios en Santa Marta</h1>
+            <div className='lx-p-discover-intro'>
+                <div>
+                    <p>Espacios recreativos</p>
+                    <h1>Descubre espacios en Santa Marta</h1>
+                </div>
+                {canPublishSpace && <div className='lx-p-discover-publish'>
+                    <p>¿Tienes un espacio? ¡Publícalo y empieza a recibir reservas!</p>
+                    <Button size='s' onClick={() => navigate('/panel/space-recreationals')}>
+                        <Icon name='add_business' />Publicar mi espacio
+                    </Button>
+                </div>}
             </div>
             <div className='lx-p-discover-filters'>
                 <div className='lx-p-discover-filter'>
@@ -105,9 +121,9 @@ const Discover = () => {
             {selectedSpace && <ReservationBooking
                 space={selectedSpace}
                 onCancel={() => setBookingOpen(false)}
-                onCreated={() => {
+                onCreated={({ reservations = [] } = {}) => {
                     setBookingOpen(false)
-                    Notify.notice('Reserva creada y pagada.', 'success')
+                    Notify.notice(reservations.length === 1 ? 'Reserva creada y pagada.' : 'Reservas creadas y pagadas.', 'success')
                 }}
             />}
         </Modal>

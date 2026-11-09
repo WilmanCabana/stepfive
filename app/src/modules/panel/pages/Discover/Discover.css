@@ -14,6 +14,33 @@
     border-bottom: var(--lx-primary-border);
 }
 
+.lx-p-discover-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.lx-p-discover-publish {
+    max-width: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.lx-p-discover-publish p {
+    margin: 0;
+    color: var(--lx-color-text);
+    font-size: .9rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.lx-p-discover-publish .lx-c-button {
+    flex: 0 0 auto;
+}
+
 .lx-p-discover-head h1 {
     margin: 0;
     color: var(--lx-color-text);
@@ -95,5 +122,15 @@
 
     .lx-p-discover-filters {
         grid-template-columns: 1fr;
+    }
+
+    .lx-p-discover-intro,
+    .lx-p-discover-publish {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .lx-p-discover-publish {
+        gap: .75rem;
     }
 }
