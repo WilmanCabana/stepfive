@@ -55,6 +55,78 @@
     color: var(--lx-color-white);
 }
 
+.lx-p-reservation-booking-cart {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.lx-p-reservation-booking-cart h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.lx-p-reservation-booking-cart > p {
+    margin: 0;
+    color: var(--lx-color-text-soft);
+    font-size: .85rem;
+}
+
+.lx-p-reservation-booking-cart ul {
+    max-height: 220px;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    list-style: none;
+    border-top: var(--lx-primary-border);
+}
+
+.lx-p-reservation-booking-cart li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: .75rem;
+    padding: .65rem 0;
+    border-bottom: var(--lx-primary-border);
+}
+
+.lx-p-reservation-booking-cart li > span:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+}
+
+.lx-p-reservation-booking-cart li small {
+    color: var(--lx-color-text-soft);
+}
+
+.lx-p-reservation-booking-cart-price {
+    font-weight: 600;
+}
+
+.lx-p-reservation-booking-cart li button {
+    padding: .35rem .5rem;
+    border: 0;
+    border-radius: var(--lx-border-radius-xs);
+    background: var(--lx-color-background-secondary);
+    color: var(--lx-color-danger);
+    font: inherit;
+    cursor: pointer;
+}
+
+.lx-p-reservation-booking-cart li button:disabled {
+    cursor: not-allowed;
+    opacity: .6;
+}
+
+.lx-p-reservation-booking-cart li.--unavailable small {
+    color: var(--lx-color-danger);
+}
+
+.lx-p-reservation-booking-cart li button:hover:not(:disabled) {
+    background: var(--lx-color-background-primary-hover);
+}
+
 .lx-p-reservation-booking-total {
     display: flex;
     justify-content: space-between;
