@@ -14,6 +14,14 @@ a {
     text-decoration: none;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid var(--lx-color-accent);
+    outline-offset: 3px;
+}
 
 h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.6pt;
@@ -29,8 +37,29 @@ body, #root {
     overflow: hidden;
 }
 
+@supports (height: 100dvh) {
+    body, #root {
+        height: 100dvh;
+    }
+}
+
 ::placeholder {
     user-select: none;
+}
+
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23757575' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right .7rem center;
+    background-size: 1.1rem;
+    cursor: pointer;
+}
+
+.lx-c-table-filter-dropdown select {
+    padding-right: 2.25rem;
 }
 
 .material-symbols-rounded {
@@ -75,11 +104,11 @@ body, #root {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(var(--lx-inverse), 0.15);
+    background: rgba(var(--lx-inverse), 0.3);
 }
 
 ::-webkit-scrollbar-thumb:active {
-    background: rgba(var(--lx-inverse), 0.15);
+    background: rgba(var(--lx-inverse), 0.4);
 }
 
 @view-transition {

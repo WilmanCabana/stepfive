@@ -1,5 +1,6 @@
 import './ReservationBooking.css'
 import { useEffect, useState } from 'react'
+import PropTypes from 'prop-types'
 import Button from '../../../../core/components/Button/Button'
 import Textarea from '../../../../core/components/Textarea/Textarea'
 import ReservationCalendar from '../ReservationCalendar/ReservationCalendar'
@@ -21,7 +22,7 @@ const ReservationBooking = ({ space, onCreated, onCancel }) => {
     useEffect(() => {
         let active = true
         setLoadingSlots(true)
-        setSelectedSlots([])
+        setSlots([])
         setMessage('')
         ReservationRequester.getAvailability(space.id, date)
             .then(result => { if (active) setSlots(result || []) })
@@ -30,18 +31,17 @@ const ReservationBooking = ({ space, onCreated, onCancel }) => {
         return () => { active = false }
     }, [space.id, date])
 
+    useEffect(() => {
+        setSelectedSlots([])
+    }, [space.id])
+
     const toggleSlot = (slot) => {
         setSelectedSlots(current => {
             const existingIndex = current.findIndex(item => item.startAt === slot.startAt)
             if (existingIndex >= 0) {
-                if (current.length === 1) return []
-                if (existingIndex === 0) return current.slice(1)
-                if (existingIndex === current.length - 1) return current.slice(0, -1)
-                return current
+                return current.filter((_, index) => index !== existingIndex)
             }
-            const ordered = [...current, slot].sort((left, right) => new Date(left.startAt) - new Date(right.startAt))
-            const contiguous = ordered.every((item, index) => index === 0 || ordered[index - 1].endAt === item.startAt)
-            return contiguous ? ordered : [slot]
+            return [...current, { ...slot, date }].sort((left, right) => new Date(left.startAt) - new Date(right.startAt))
         })
     }
 
@@ -52,11 +52,29 @@ const ReservationBooking = ({ space, onCreated, onCancel }) => {
         setSubmitting(true)
         setMessage('')
         try {
-            const ordered = [...selectedSlots].sort((left, right) => new Date(left.startAt) - new Date(right.startAt))
-            const result = await ReservationRequester.createReservation({
+            const dates = [...new Set(selectedSlots.map(slot => slot.date))]
+            const availabilityByDate = await Promise.all(dates.map(async selectedDate => [
+                selectedDate,
+                await ReservationRequester.getAvailability(space.id, selectedDate)
+            ]))
+            const availableIntervals = new Set(availabilityByDate.flatMap(([, availableSlots]) =>
+                availableSlots.map(slot => `${slot.startAt}|${slot.endAt}`)
+            ))
+            const unavailableIntervals = new Set(selectedSlots
+                .filter(slot => !availableIntervals.has(`${slot.startAt}|${slot.endAt}`))
+                .map(slot => `${slot.startAt}|${slot.endAt}`))
+
+            if (unavailableIntervals.size > 0) {
+                setSelectedSlots(current => current.map(slot => ({
+                    ...slot,
+                    unavailable: unavailableIntervals.has(`${slot.startAt}|${slot.endAt}`)
+                })))
+                throw new Error('Una o más franjas ya no están disponibles. Quita las franjas marcadas e inténtalo de nuevo.')
+            }
+
+            const result = await ReservationRequester.createReservationsBatch({
                 spaceId: space.id,
-                startAt: ordered[0].startAt,
-                endAt: ordered[ordered.length - 1].endAt,
+                reservations: selectedSlots.map(({ startAt, endAt }) => ({ startAt, endAt })),
                 notes
             })
             onCreated?.(result)
@@ -86,23 +104,49 @@ const ReservationBooking = ({ space, onCreated, onCancel }) => {
                             key={slot.startAt}
                             className={selected ? '--selected' : ''}
                             aria-pressed={selected}
+                            disabled={loadingSlots || submitting}
                             onClick={() => toggleSlot(slot)}
                         >{slot.label}</button>
                     })}
                 </div>
             </section>
         </div>
+        {selectedSlots.length > 0 && <section className='lx-p-reservation-booking-cart' aria-label='Franjas seleccionadas'>
+            <h3>Tu selección</h3>
+            <p>Puedes elegir horarios de diferentes fechas; se conservan al cambiar el calendario.</p>
+            <ul>
+                {selectedSlots.map(slot => <li key={slot.startAt} className={slot.unavailable ? '--unavailable' : ''}>
+                    <span>
+                        <strong>{new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', dateStyle: 'medium' }).format(new Date(slot.startAt))}</strong>
+                        <small>{slot.label}{slot.unavailable ? ' · Ya no disponible' : ''}</small>
+                    </span>
+                    <span className='lx-p-reservation-booking-cart-price'>${Number(slot.totalPrice).toLocaleString('es-CO')}</span>
+                    <button type='button' disabled={submitting} onClick={() => toggleSlot(slot)} aria-label={`Quitar franja del ${slot.label}`}>Quitar</button>
+                </li>)}
+            </ul>
+        </section>}
         <Textarea id='reservation-notes' label='Notas (opcional)' value={notes} onChange={event => setNotes(event.target.value)} />
         {selectedSlots.length > 0 && <div className='lx-p-reservation-booking-total'>
-            <span>{selectedSlots.length} {selectedSlots.length === 1 ? 'franja' : 'franjas'}</span>
+            <span>{selectedSlots.length} {selectedSlots.length === 1 ? 'franja seleccionada' : 'franjas seleccionadas'}</span>
             <strong>${total.toLocaleString('es-CO')}</strong>
         </div>}
         {message && <p className='lx-p-reservation-booking-message' role='alert'>{message}</p>}
         <div className='lx-p-reservation-booking-actions'>
             <Button color='auto' variant='bordered' onClick={onCancel}>Cancelar</Button>
-            <Button disabled={!selectedSlots.length || submitting} loading={submitting} onClick={submit}>Pagar y confirmar</Button>
+            <Button disabled={!selectedSlots.length || submitting} loading={submitting} onClick={submit}>Pagar y confirmar {selectedSlots.length > 1 ? 'reservas' : 'reserva'}</Button>
         </div>
     </div>
+}
+
+ReservationBooking.propTypes = {
+    space: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,
+        reservationMode: PropTypes.string,
+        reservationUnitMinutes: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    }).isRequired,
+    onCreated: PropTypes.func,
+    onCancel: PropTypes.func,
 }
 
 export default ReservationBooking

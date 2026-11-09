@@ -7,6 +7,7 @@ import Validator from '../../core/utils/Validator.js'
 import { PERMISSIONS } from '../constants/authorities.js'
 import SpaceRecreationalDTO from '../dtos/SpaceRecreational.dto.js'
 import SpaceRecreationalService from '../services/SpaceRecreational.service.js'
+import ReviewService from '../../reviews/services/Review.service.js'
 
 const SPACE_FIELDS = [
     'name', 'type', 'description', 'verificationStatus', 'address', 'neighborhood',
@@ -16,7 +17,7 @@ const SPACE_FIELDS = [
     'hasLighting', 'hasSound', 'hasStage', 'hasWifi', 'hasGenerator', 'isAccessible',
     'condition', 'pricePerHour', 'paymentMethods',
     'allowsAlcohol', 'allowsFood', 'allowsMusic',
-    'openingHours', 'coverImage', 'gallery',
+    'openingHours', 'coverImage', 'presentationVideo', 'gallery',
     'fieldType', 'fieldDimensions', 'hasNets', 'hasBalls', 'hasVests', 'seatedCapacity',
     'hasDanceFloor', 'hasFurniture', 'hasVIPArea',
     'reservationMode', 'reservationUnitMinutes'
@@ -35,7 +36,9 @@ export class SpaceRecreationalController {
 
     constructor(
         @Inject(SpaceRecreationalService)
-        private spaceService: SpaceRecreationalService
+        private spaceService: SpaceRecreationalService,
+        @Inject(ReviewService)
+        private reviewService: ReviewService
     ) { }
 
     @Get('/')
@@ -55,7 +58,7 @@ export class SpaceRecreationalController {
     @Get('/discover')
     @Public()
     async discover(request, response) {
-        const spaces = await this.spaceService.discover(request.query)
+        const spaces = await this.reviewService.attachRatings(await this.spaceService.discover(request.query))
         return response.status(200).json(spaces.map(space => new SpaceRecreationalDTO(space)))
     }
 

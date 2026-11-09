@@ -1,5 +1,7 @@
 import './RegisterForm.css'
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import PropTypes from 'prop-types'
 import { useForm } from '../../core/hooks/useForm' 
 import { REGISTER } from './constants/register.mjs'
 import Validator from '../../core/utils/validator.mjs'
@@ -15,7 +17,10 @@ import Select from '../../core/components/Select/Select'
 
 const RegisterForm = ({ authenticationMode, setAuthenticationMode, signUp }) => {
     const imageInputRef = useRef(null)
+    const consentInputRef = useRef(null)
     const [step, setStep] = useState(1)
+    const [consentAccepted, setConsentAccepted] = useState(false)
+    const [consentError, setConsentError] = useState('')
 
     const {
         form,
@@ -73,6 +78,12 @@ const RegisterForm = ({ authenticationMode, setAuthenticationMode, signUp }) => 
     const handler = async (event) => {
         event.preventDefault()
 
+        if (!consentAccepted) {
+            setConsentError('Debes aceptar los términos y el uso de tus datos para continuar.')
+            consentInputRef.current?.focus()
+            return false
+        }
+
         if (!validate()) return false
 
         const success = await signUp(form)
@@ -85,6 +96,8 @@ const RegisterForm = ({ authenticationMode, setAuthenticationMode, signUp }) => 
     const handleLogin = () => {
         setStep(1)
         resetForm()
+        setConsentAccepted(false)
+        setConsentError('')
         setAuthenticationMode('login')
     }
 
@@ -370,8 +383,26 @@ const RegisterForm = ({ authenticationMode, setAuthenticationMode, signUp }) => 
 
                             <div className={`lx-m-authentication-register-form-content-section ${step === 5 && '--visible'}`}>
                                 <p className='lx-m-authentication-register-form-content-section-message'>
-                                    ¡Listo! Ya tenemos tus datos validados para crear la cuenta y terminar con el proceso. Haz un click el botón de "Registrarse" a continuación, e inicia sesión con tus credenciales.
+                                    ¡Listo! Ya tenemos tus datos validados para crear la cuenta y terminar con el proceso. Haz clic en el botón de &quot;Registrarse&quot; a continuación e inicia sesión con tus credenciales.
                                 </p>
+                                <label className='lx-m-authentication-register-consent'>
+                                    <input
+                                        ref={consentInputRef}
+                                        type='checkbox'
+                                        required
+                                        checked={consentAccepted}
+                                        aria-invalid={Boolean(consentError)}
+                                        aria-describedby={consentError ? 'register-consent-error' : undefined}
+                                        onChange={(event) => {
+                                            setConsentAccepted(event.target.checked)
+                                            if (event.target.checked) setConsentError('')
+                                        }}
+                                    />
+                                    <span>
+                                        Acepto los <Link to='/terms'>términos</Link>, la política de privacidad y el tratamiento de mis datos como posible Lead comercial.
+                                    </span>
+                                </label>
+                                {consentError && <p className='lx-m-authentication-register-consent-error' id='register-consent-error' role='alert'>{consentError}</p>}
                             </div>
                         </div>
                         <div className='lx-m-authentication-register-form-actions'>
@@ -394,9 +425,6 @@ const RegisterForm = ({ authenticationMode, setAuthenticationMode, signUp }) => 
                                 </Button>
                             }
                         </div>
-                        <div className='lx-m-authentication-register-form-note'>
-                            Al registrarse, acepta nuestros <strong>Términos de Servicio</strong>, y nuestras políticas, <strong>Política de Privacidad</strong> y <strong>Política de Tratamientos de Datos Personales</strong>
-                        </div>
                         <div className='lx-m-authentication-register-form-actions'>
                             <Button size='xs' color='accent' variant='plain' onClick={handleLogin}>
                                 <Icon name='lock' />
@@ -409,6 +437,12 @@ const RegisterForm = ({ authenticationMode, setAuthenticationMode, signUp }) => 
             </div>
         </div>
     )
+}
+
+RegisterForm.propTypes = {
+    authenticationMode: PropTypes.oneOf(['login', 'register']).isRequired,
+    setAuthenticationMode: PropTypes.func.isRequired,
+    signUp: PropTypes.func.isRequired,
 }
 
 export default RegisterForm

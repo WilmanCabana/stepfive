@@ -22,6 +22,16 @@ export class ReservationController {
         return response.status(201).json(new ReservationDTO(reservation))
     }
 
+    @Post('/batch')
+    @Permissions([PERMISSIONS.RESERVATION.CREATE])
+    async createBatch(request, response) {
+        const result = await this.reservationService.createBatch(request.body || {}, request.user)
+        return response.status(201).json({
+            reservations: result.reservations.map(reservation => new ReservationDTO(reservation)),
+            totalPrice: result.totalPrice
+        })
+    }
+
     @Get('/me')
     @Permissions([PERMISSIONS.RESERVATION.READ])
     async findMine(request, response) {

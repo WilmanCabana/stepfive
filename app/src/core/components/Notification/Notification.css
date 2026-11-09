@@ -18,6 +18,8 @@
   gap: 1rem;
   z-index: 1000;
   pointer-events: none;
+  border: var(--lx-primary-border);
+  box-shadow: var(--lx-box-shadow-popout);
 }
 
 .lx-c-notification.--show {
@@ -54,4 +56,12 @@
 
 .lx-c-notification-indicator.--warning {
   background-color: #f97316;
+}
+
+@media (max-width: 480px) {
+  .lx-c-notification {
+    width: calc(100% - 2rem);
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    padding: .85rem 1rem;
+  }
 }

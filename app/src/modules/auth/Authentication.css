@@ -13,3 +13,45 @@
     right: 1rem;
     z-index: 100;
 }
+
+.lx-m-authentication-home {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+    min-height: 42px;
+    padding: 0 .75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    border: var(--lx-primary-border);
+    border-radius: var(--lx-border-radius-full);
+    color: var(--lx-color-text);
+    background: var(--lx-color-background-primary);
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.lx-m-authentication-home:hover {
+    color: var(--lx-color-accent);
+}
+
+.lx-m-authentication-home:focus-visible {
+    outline: 3px solid var(--lx-color-accent);
+    outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+    .lx-m-authentication-home {
+        top: .65rem;
+        left: .65rem;
+        min-height: 38px;
+        padding: 0 .6rem;
+        font-size: .76rem;
+    }
+
+    .lx-m-authentication-mode {
+        top: .65rem;
+        right: .65rem;
+    }
+}

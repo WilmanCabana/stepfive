@@ -1,10 +1,13 @@
 /* eslint-disable react/prop-types */
 import './SpaceRecreationalDetail.css'
+import { useState } from 'react'
 import Button from '../../../../core/components/Button/Button'
 import Icon from '../../../../core/components/Icon/Icon'
+import ImageLightbox from '../../../../core/components/ImageLightbox/ImageLightbox'
 import SpaceConditionTag from '../../components/SpaceConditionTag/SpaceConditionTag'
 import SpaceVerifyButton from '../../components/SpaceVerifyButton/SpaceVerifyButton'
 import SpaceVerificationTag from '../../components/SpaceVerificationTag/SpaceVerificationTag'
+import SpaceReviews from '../../components/SpaceReviews/SpaceReviews'
 import { SPACE } from '../../constants/space.constant.mjs'
 
 const parseStoredValue = (value) => {
@@ -14,9 +17,9 @@ const parseStoredValue = (value) => {
 
 const isPresent = value => value !== null && value !== undefined && value !== ''
 
-const DetailField = ({ label, value, href, external = false }) => {
+const DetailField = ({ label, value, href, external = false, className = '' }) => {
     if (!isPresent(value)) return null
-    return <div className='lx-c-space-recreational-detail-field'>
+    return <div className={`lx-c-space-recreational-detail-field ${className}`}>
         <span className='--label'>{label}</span>
         <span className='--value'>
             {href
@@ -71,12 +74,17 @@ const conditionLabels = {
     needs_maintenance: 'Mantenimiento'
 }
 
-const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerified, onClose, onReserve, canVerify = false }) => {
+const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerified, onClose, onReserve, onRatingChange, focusReviews = false, canVerify = false, showPresentationPanel = false }) => {
+    const [lightboxIndex, setLightboxIndex] = useState(null)
     if (!space) return null
     const hours = parseStoredValue(space.openingHours) || {}
     const paymentMethods = parseStoredValue(space.paymentMethods)
     const gallery = parseStoredValue(space.gallery) || []
     const galleryImages = Array.isArray(gallery) ? gallery.filter(isPresent) : []
+    const lightboxImages = [
+        ...(isPresent(space.coverImage) ? [{ src: space.coverImage, alt: `${space.name} · portada` }] : []),
+        ...galleryImages.map((src, index) => ({ src, alt: `${space.name} · imagen ${index + 1}` }))
+    ]
     const typeLabel = space.type === 'event_hall' ? 'Salón de eventos' : 'Cancha sintética'
     const coordinates = typeof space.coordinates === 'string'
         ? space.coordinates.trim().split(/\s*,\s*/)
@@ -105,7 +113,16 @@ const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerif
         ? `${Math.floor(reservationDuration / 60)} h${reservationDuration % 60 ? ` ${reservationDuration % 60} min` : ''}`
         : `${reservationDuration} min`
 
-    return <div className='lx-c-space-recreational-detail'>
+    return <div className={`lx-c-space-recreational-detail${showPresentationPanel ? ' --with-presentation' : ''}`}>
+        {showPresentationPanel && <aside className='lx-c-space-recreational-detail-presentation'>
+            {isPresent(space.presentationVideo)
+                ? <video src={space.presentationVideo} controls playsInline preload='metadata' aria-label={`Video de presentación de ${space.name}`} />
+                : <div className='lx-c-space-recreational-detail-video-placeholder'>
+                    <Icon name='movie' size='xxl' />
+                    <p>Este espacio no cuenta con video de presentación</p>
+                </div>}
+        </aside>}
+        <div className='lx-c-space-recreational-detail-content'>
         <div className='lx-c-space-recreational-detail-header'>
             <div>
                 <h2>{space.name}</h2>
@@ -133,13 +150,12 @@ const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerif
                 </div>
             </DetailSection>}
             <DetailSection icon='info' title='Información general'>
-                <div className='lx-c-space-recreational-detail-grid'>
+                <div className='lx-c-space-recreational-detail-grid --general'>
                     <DetailField label='Nombre' value={space.name} />
                     <DetailField label='Tipo' value={typeLabel} />
                     <DetailField label='Condición' value={conditionLabels[space.condition] || space.condition} />
-                    <DetailField label='Estado de verificación' value={space.verificationStatus} />
+                    <DetailField className='--description' label='Descripción' value={space.description} />
                 </div>
-                <DetailField label='Descripción' value={space.description} />
             </DetailSection>
 
             <DetailSection icon='location_on' title='Ubicación'>
@@ -205,10 +221,14 @@ const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerif
             {(isPresent(space.coverImage) || galleryImages.length > 0) && <DetailSection icon='photo_library' title='Multimedia'>
                 {isPresent(space.coverImage) && <div className='lx-c-space-recreational-detail-cover-wrap'>
                     <span className='lx-c-space-recreational-detail-media-label'>Imagen de portada</span>
-                    <img className='lx-c-space-recreational-detail-cover' src={space.coverImage} alt={space.name} />
+                    <button type='button' className='lx-c-space-recreational-detail-image-button --cover' onClick={() => setLightboxIndex(0)} aria-label='Ver imagen de portada en pantalla completa'>
+                        <img className='lx-c-space-recreational-detail-cover' src={space.coverImage} alt={space.name} />
+                    </button>
                 </div>}
                 {galleryImages.length > 0 && <div className='lx-c-space-recreational-detail-gallery'>
-                    {galleryImages.map((image, index) => <img key={`${image}-${index}`} src={image} alt={`${space.name} · imagen ${index + 1}`} loading='lazy' />)}
+                    {galleryImages.map((image, index) => <button type='button' className='lx-c-space-recreational-detail-image-button' key={`${image}-${index}`} onClick={() => setLightboxIndex((isPresent(space.coverImage) ? 1 : 0) + index)} aria-label={`Ver imagen ${index + 1} en pantalla completa`}>
+                        <img src={image} alt={`${space.name} · imagen ${index + 1}`} loading='lazy' />
+                    </button>)}
                 </div>}
             </DetailSection>}
 
@@ -228,6 +248,8 @@ const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerif
                 ]} />
             </DetailSection>}
 
+            <SpaceReviews space={space} onRatingChange={onRatingChange} focus={focusReviews} />
+
             <DetailSection icon='verified' title='Estado' className='--state'>
                 <div className='lx-c-space-recreational-detail-grid'>
                     <DetailField label='Verificación' value={isPresent(space.verificationStatus) ? <SpaceVerificationTag status={space.verificationStatus} /> : null} />
@@ -241,6 +263,8 @@ const SpaceRecreationalDetail = ({ space, reservation, onEdit, onDelete, onVerif
             {onEdit && <Button variant='bordered' onClick={() => onEdit(space)}><Icon name='edit' />Editar</Button>}
             {onDelete && <Button color='danger' variant='bordered' onClick={() => onDelete(space)}><Icon name='delete' />Eliminar</Button>}
         </div>
+        </div>
+        {lightboxIndex !== null && <ImageLightbox images={lightboxImages} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />}
     </div>
 }
 

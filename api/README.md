@@ -1,4 +1,4 @@
-# API (`/api`)
+# API (`/api`) — Stepfive v3.0.0
 
 Servicio backend del proyecto Stepfive Inno Project. Expone una API REST para **identidad y control de acceso (IAM)**, gestión de espacios recreativos y reservas.
 
@@ -12,8 +12,24 @@ Construido con un **framework custom** sobre Express 5: decoradores para rutas (
 | `Role`         | `Roles`          | Rol con nombre, alias, descripcion (ej: Admin, Guest, User)   |
 | `Permission`   | `Permissions`    | Permiso granular con tipo (Access, Create, Read, Update, etc.) |
 | `BlockedToken` | `BlockedTokens`  | Tokens JWT revocados (logout)                                  |
+| `SpaceRecreational` | `SpaceRecreationals` | Espacio recreativo; incluye datos descriptivos y URL opcional `presentationVideo` |
+| `Favorite`     | `Favorites`      | Relación entre un usuario y un espacio marcado como favorito   |
+| `Review`       | `Reviews`        | Calificación y comentario de un usuario para un espacio        |
+| `Reservation`  | `Reservations`   | Franja reservada por un usuario para un espacio                |
 
 Relaciones: `UsersRoles` (M2M usuario-rol), `RolesPermissions` (M2M rol-permiso).
+
+### Video de presentación del espacio
+
+La entidad y el `SpaceRecreationalDTO` incluyen `presentationVideo`, una URL opcional del video de presentación. El servicio valida que la URL tenga formato válido. Los archivos se suben desde el frontend a Supabase Storage y la API solo persiste/retorna la URL.
+
+Para instalaciones existentes, aplica la migración manual:
+
+```sql
+ALTER TABLE "SpaceRecreationals" ADD COLUMN IF NOT EXISTS "presentationVideo" text NULL;
+```
+
+El script está en `src/core/orm/database/scripts/alter-spaces-video.sql`. El frontend guarda los videos bajo la carpeta `videos/` del bucket público `space-images`. Configura ese bucket para admitir `video/mp4` y `video/webm`; el límite de carga del frontend es 20 MB. Las imágenes existentes siguen usando el mismo bucket.
 
 ## Instalacion
 
@@ -224,7 +240,7 @@ Base: `/spaces`
 
 | Método | Endpoint | Acceso requerido |
 |--------|----------|------------------|
-| `GET` | `/spaces/discover` | Público; devuelve espacios aprobados |
+| `GET` | `/spaces/discover` | Público; devuelve espacios aprobados con `ratingAverage` y `ratingCount` |
 | `GET` | `/spaces/` | `ReadSpaces` |
 | `GET` | `/spaces/me` | `ReadSpaces` |
 | `GET` | `/spaces/:id` | `ReadSpaces` |
@@ -244,6 +260,7 @@ Base: `/reservations`
 | Método | Endpoint | Acceso requerido |
 |--------|----------|------------------|
 | `POST` | `/reservations/` | `CreateReservations` |
+| `POST` | `/reservations/batch` | `CreateReservations`; crea varias franjas de forma atómica |
 | `GET` | `/reservations/me` | `ReadReservations` |
 | `GET` | `/reservations/spaces/me` | `ReadReservations` |
 | `GET` | `/reservations/space/:spaceId/availability` | `ReadReservations` |
@@ -253,12 +270,62 @@ Base: `/reservations`
 
 El módulo registra `ReadReservations`, `CreateReservations`, `CancelReservations`, `ReadOwnSpaceReservations` y `AccessReservations`. Las rutas usan las protecciones indicadas en la tabla; la consulta de reservas por espacio verifica además que el usuario sea el propietario o Admin.
 
+#### Creación múltiple
+
+`POST /reservations/batch` recibe el espacio, una lista de franjas y notas opcionales. El backend valida cada intervalo, comprueba los solapamientos, calcula cada precio y el total a partir de los datos del espacio, y guarda todas las filas en una única transacción. Si una franja entra en conflicto, no se guarda ninguna. La restricción PostgreSQL de exclusión contra solapamientos sigue protegiendo también frente a solicitudes concurrentes.
+
+**Request:**
+
+```json
+{
+  "spaceId": "UUID_DEL_ESPACIO",
+  "reservations": [
+    { "startAt": "2026-11-13T19:00:00.000Z", "endAt": "2026-11-13T20:00:00.000Z" },
+    { "startAt": "2026-11-14T19:00:00.000Z", "endAt": "2026-11-14T20:00:00.000Z" }
+  ],
+  "notes": "Dos horarios para el mismo espacio"
+}
+```
+
+La respuesta contiene `reservations` con las reservas creadas y `totalPrice` calculado en el servidor. El frontend actualiza la disponibilidad de las fechas seleccionadas antes del envío y presenta la confirmación como una sola acción. PSE continúa siendo un método registrado: no hay integración con una pasarela de pago real y las reservas se marcan pagadas manualmente.
+
+### `Favorite`
+
+Permite que cada usuario guarde espacios recreativos como favoritos. La entidad `Favorite` se persiste en `Favorites` y relaciona `User` (`userId`) con `SpaceRecreational` (`spaceId`). Un índice único evita que el mismo usuario marque dos veces el mismo espacio. Quitar un favorito elimina el registro.
+
+Base: `/favorites`
+
+| Método | Endpoint | Acceso requerido |
+|--------|----------|------------------|
+| `GET` | `/favorites/me` | `ReadFavorites`; devuelve los espacios aprobados marcados por el usuario |
+| `POST` | `/favorites/:spaceId` | `CreateFavorites` |
+| `DELETE` | `/favorites/:spaceId` | `DeleteFavorites` |
+
+El módulo registra `ReadFavorites`, `CreateFavorites`, `DeleteFavorites` y `AccessFavorites` (este último habilita la sección *Mis lugares favoritos* en el panel). `init-favorites.sql` los asigna a los roles Admin y User.
+
+### `Review`
+
+Permite calificar un espacio de 1 a 5 estrellas con un comentario opcional. La entidad `Review` se persiste en `Reviews` y relaciona `User` (`userId`) con `SpaceRecreational` (`spaceId`). Cada usuario tiene una sola reseña por espacio: si vuelve a guardar, se actualiza.
+
+Base: `/reviews`
+
+| Método | Endpoint | Acceso requerido |
+|--------|----------|------------------|
+| `GET` | `/reviews/space/:spaceId` | Público; devuelve `ratingAverage`, `ratingCount` y `reviews` (solo el nombre del autor) |
+| `GET` | `/reviews/space/:spaceId/me` | `ReadReviews`; devuelve `review`, `canReview` y `reason` |
+| `PUT` | `/reviews/space/:spaceId` | `CreateReviews`; body `{ "rating": 1-5, "comment"?: "..." }` |
+
+Reglas al guardar: el espacio debe estar aprobado, quien reseña no puede ser el dueño, debe tener al menos una reserva no cancelada en el espacio, `rating` es un entero de 1 a 5 y `comment` tiene máximo 500 caracteres. `GET /spaces/discover` y `GET /favorites/me` incluyen `ratingAverage` (un decimal) y `ratingCount` en cada espacio; con `ratingCount` en 0 el frontend no muestra estrellas.
+
 ### Scripts SQL de módulos
 
 Inicia la API una vez para que el ORM sincronice las tablas. Después, ejecuta los scripts desde el SQL Editor de Supabase; si necesitas cargar los roles y permisos base, ejecuta primero `src/core/orm/database/scripts/init.sql`:
 
 1. `src/core/orm/database/scripts/init-spaces.sql` registra los permisos de espacios.
 2. `src/core/orm/database/scripts/init-reservations.sql` crea la tabla e índices de reservas, la restricción contra franjas solapadas y los permisos del módulo.
+3. `src/core/orm/database/scripts/alter-spaces-video.sql` agrega `presentationVideo` a instalaciones existentes si la columna no está creada.
+4. `src/core/orm/database/scripts/init-favorites.sql` crea el índice único de favoritos y registra sus permisos para Admin y User.
+5. `src/core/orm/database/scripts/init-reviews.sql` crea el índice único de reseñas (usuario + espacio), la restricción de calificación entre 1 y 5 y los permisos `ReadReviews` y `CreateReviews` para Admin y User.
 
 La tabla `SpaceRecreationals` se sincroniza al iniciar la API mediante el ORM.
 
@@ -292,6 +359,16 @@ src/
 │   ├── entities/            # SpaceRecreational
 │   ├── repositories/        # Persistencia de espacios
 │   └── services/            # Gestión, Discover y validaciones
+├── favorites/               # Favoritos de usuarios y espacios
+│   ├── controllers/         # Endpoints /favorites
+│   ├── entities/            # Favorite
+│   ├── repositories/        # Persistencia de favoritos
+│   └── services/            # Gestión de favoritos
+├── reviews/                 # Calificaciones y reseñas de espacios
+│   ├── controllers/         # Endpoints /reviews
+│   ├── entities/            # Review
+│   ├── repositories/        # Consultas y persistencia de reseñas
+│   └── services/            # Reglas y agregados de calificación
 └── reservations/            # Reservas y disponibilidad
     ├── controllers/         # Endpoints /reservations
     ├── dtos/                # ReservationDTO

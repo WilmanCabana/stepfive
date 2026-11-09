@@ -1,19 +1,55 @@
-# APP (`/app`)
+# APP (`/app`) — Stepfive v3.0.0
 
 Interfaz web del proyecto Stepfive. Es una SPA (React 18 + Vite + React Router) con autenticación RBAC y módulos para gestionar usuarios, roles, permisos, espacios recreativos y reservas contra la API backend.
+
+## Rutas y navegación
+
+| Pantalla | Ruta | Acceso | Descripción |
+|----------|------|--------|-------------|
+| Landing Page | `/` | Pública | Presenta Stepfive a clientes y propietarios; incluye espacios destacados y accesos a explorar/publicar. |
+| Login / Registro | `/auth` | Pública | Inicio de sesión y registro. El registro también acepta `?mode=register`. |
+| Términos de uso | `/terms` | Pública | Información sobre el uso de la plataforma y contacto comercial. |
+| Privacidad | `/privacy` | Pública | Información de privacidad y tratamiento de datos. |
+| Contacto | `/contact` | Pública | Canal de contacto del proyecto. |
+| Discover | `/panel` | Protegida: `AccessDashboard` | Catálogo de espacios aprobados y filtros. |
+| Mis reservas | `/panel/my-reservations` | Protegida: `ReadReservations` | Timeline y detalles de las reservas propias. |
+| Mis lugares favoritos | `/panel/favorite-spaces` | Protegida: `AccessFavorites` | Espacios marcados con el corazón en Discover. |
+| Mis espacios recreativos | `/panel/space-recreationals` | Protegida: `AccessSpaces` | Administración de espacios, sus imágenes/videos y calendario de reservas. |
+| Usuarios | `/panel/users` | Protegida: `AccessUsers` | Gestión de usuarios. |
+| Autorización | `/panel/authorization` | Protegida: `AccessAuthorization` | Gestión de roles y permisos. |
+
+### Landing Page pública y Login
+
+La ruta `/` no requiere autenticación. Presenta Stepfive, permite explorar espacios destacados y abre el detalle en un modal de solo lectura. El botón de reserva de ese detalle redirige a `/auth`; tras iniciar sesión, las demás funciones de gestión y reserva se usan dentro del panel protegido. La ruta `/auth` ofrece Login y registro y también funciona como destino de las acciones públicas que requieren una cuenta.
 
 ### Que ve el usuario
 
 | Pantalla          | Ruta              | Permiso requerido      | Que hace                                                              |
 |-------------------|-------------------|------------------------|-----------------------------------------------------------------------|
-| **Login/Registro**| `/auth`           | Publica                | Formulario de login y wizard de registro (5 pasos, carga imagen a Firebase) |
-| **Discover**      | `/`               | `AccessDashboard`      | Catálogo de espacios aprobados, consultado mediante el endpoint público, con filtros de búsqueda |
-| **Mis espacios recreativos** | `/space-recreationals` | `AccessSpaces` | Gestión de espacios en tarjetas/tabla y calendario de reservas recibidas |
-| **Mis reservas** | `/my-reservations` | `ReadReservations` | Timeline de reservas propias y detalle del espacio y la reserva |
-| **Usuarios**      | `/users`          | `AccessUsers`          | Listado en tarjetas o tabla, autorizar/desautorizar, asignar roles, ver detalles, eliminar |
-| **Autorizacion**  | `/authorization`  | `AccessAuthorization`  | CRUD de roles (crear, editar, activar/desactivar, asignar permisos) y consulta de permisos |
+| **Landing Page**  | `/`               | Pública                 | Presenta la plataforma, destacados e información para clientes y propietarios |
+| **Login/Registro**| `/auth`           | Pública                 | Formulario de login y wizard de registro (5 pasos, carga imagen a Firebase) |
+| **Discover**      | `/panel`          | `AccessDashboard`       | Catálogo público de espacios aprobados, filtros y detalles visuales |
+| **Mis espacios recreativos** | `/panel/space-recreationals` | `AccessSpaces` | Gestión en tarjetas/tabla, imágenes, video de presentación y reservas recibidas |
+| **Mis reservas** | `/panel/my-reservations` | `ReadReservations` | Timeline de reservas propias y detalle del espacio y la reserva |
+| **Mis lugares favoritos** | `/panel/favorite-spaces` | `AccessFavorites` | Tarjetas de los espacios guardados como favoritos, con detalle y reserva |
+| **Usuarios**      | `/panel/users`    | `AccessUsers`           | Listado, autorizaciones, roles, detalles y eliminación |
+| **Autorización**  | `/panel/authorization` | `AccessAuthorization` | CRUD de roles y consulta/asignación de permisos |
 
 Funcionalidades transversales: tema claro/oscuro, deteccion de conexion offline, sidebar con navegacion filtrada por permisos, sesion persistida en `localStorage`.
+
+## Experiencia de usuario y accesibilidad
+
+La versión 3.0.0 aplica principios y leyes UX para mejorar jerarquía, consistencia y visibilidad de las acciones, reducir fricción en la exploración y la publicación, y mantener controles accesibles, navegación por teclado y contraste coherente con los temas claro y oscuro.
+
+Las tarjetas muestran la calificación en una píldora oscura superpuesta a la imagen, con estrella dorada, promedio y cantidad de reseñas. En el panel, la píldora es interactiva y abre el detalle desplazándose a la sección de reseñas; en la Landing Page es informativa. La creación de un espacio muestra antes el aviso de comisión del 14%, con opciones para continuar o cancelar. En Discover, las acciones para publicar aparecen junto al encabezado para los usuarios que tienen permiso de crear espacios.
+
+### Video y vista de detalles
+
+En Discover y en las vistas de detalle que reutilizan el componente, se puede mostrar un visor de video en un diseño split-screen: reproductor de video a la izquierda y la información del espacio en una columna independiente con scroll a la derecha. En móvil, las columnas se apilan. Si no hay video, se muestra un placeholder. Los videos MP4 y WebM de hasta 20 MB se guardan en la carpeta `videos/` del bucket Supabase Storage `space-images`; las imágenes continúan usando su flujo existente.
+
+### Landing Page y marca
+
+La Landing Page se implementa en `src/modules/landing/LandingPage.jsx`; las páginas públicas de términos, privacidad y contacto están en `src/modules/public-pages/PublicPages.jsx`. El componente `src/core/components/Logo/Logo.jsx` renderiza el logo SVG de la cabeza de lobo y utiliza variables del tema para conservar contraste en modo claro/oscuro. El componente se comparte entre la Landing Page, el sidebar y otras superficies.
 
 > **Nota:** Existen componentes listos pero **aun sin usar** en las vistas: mapas (`MapPicker` con Leaflet), graficos (Recharts), y exportacion a Excel (`exceljs`). Estan disponibles en `src/core/` para futuros modulos.
 
@@ -25,7 +61,7 @@ pnpm install
 pnpm run dev
 ```
 
-Abre `http://localhost:5173`. Deberia cargar la pantalla de login.
+Abre `http://localhost:5173`. Debería cargar la Landing Page pública; el login y el registro están en `/auth`.
 
 ## Variables de entorno
 
@@ -49,18 +85,33 @@ El registro de usuarios sube la imagen de perfil a Firebase Storage. La configur
 
 Si el proyecto de Firebase cambia, actualiza las credenciales en ese archivo.
 
-### Supabase Storage (imagenes de espacios)
+### Supabase Storage (imágenes y videos de espacios)
 
-La portada y la galería de los espacios recreativos se suben a Supabase Storage mediante `src/core/utils/uploadImage.mjs`. Crea un bucket público llamado `space-images` y configura `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `app/.env`. Las imágenes de perfil del registro de usuarios siguen usando el flujo existente de Firebase.
+La portada y la galería se suben a Supabase Storage mediante `src/core/utils/uploadImage.mjs`; el video de presentación usa `src/core/utils/uploadFile.mjs`. Crea un bucket público llamado `space-images`, permite los MIME `image/png`, `image/jpeg`, `image/webp`, `video/mp4` y `video/webm`, y configura un límite de al menos 20 MB. El video se almacena bajo `videos/`; las imágenes, bajo `spaces/`. Configura `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en `app/.env`. Las imágenes de perfil del registro siguen usando Firebase.
 
 ## Espacios y reservas
 
-- **Discover (`/`)** muestra los espacios aprobados y permite filtrar por tipo, buscar por nombre y ordenar por precio. El catálogo de API usa el endpoint público `GET /spaces/discover`; la vista del panel sigue su configuración de acceso `AccessDashboard`.
-- **Mis espacios recreativos (`/space-recreationals`)** permite gestionar espacios en tarjetas o tabla. Su tercera pestaña, **Reservas**, presenta el calendario y las reservas recibidas para los espacios del propietario.
-- **Mis reservas (`/my-reservations`)** presenta las reservas propias en un timeline. Al seleccionar una, abre el detalle completo del espacio junto con los datos de esa reserva.
+- **Discover (`/panel`)** muestra los espacios aprobados con tarjetas de imágenes destacadas; permite filtrar por tipo, buscar por nombre y ordenar por precio. Al seleccionar un espacio, muestra el video a la izquierda y los detalles con scroll independiente a la derecha (en móvil, apilados). El catálogo de API usa el endpoint público `GET /spaces/discover`; la página dentro del panel requiere `AccessDashboard`.
+- **Mis espacios recreativos (`/panel/space-recreationals`)** permite gestionar espacios en tarjetas o tabla. Su tercera pestaña, **Reservas**, presenta el calendario y las reservas recibidas para los espacios del propietario.
+- **Mis reservas (`/panel/my-reservations`)** presenta las reservas propias en un timeline. Al seleccionar una, abre el detalle completo del espacio junto con los datos de esa reserva.
 - Para reservar, el usuario elige franjas disponibles y confirma con el método PSE. No hay pasarela de pago real: la API registra la reserva como pagada manualmente y genera una referencia `manual-*`.
+- **Reservas múltiples:** en el modal de reserva se pueden elegir varias franjas discontinuas del mismo espacio, incluso de diferentes fechas. La selección queda en un carrito temporal al cambiar el día; se puede quitar cada franja, consultar el total y confirmar el conjunto en una sola acción. Antes de enviar, la app vuelve a consultar disponibilidad. `POST /reservations/batch` valida y calcula los precios en el servidor y crea todas las reservas en una transacción atómica; si alguna entra en conflicto, no se crea ninguna. La confirmación es una sola interacción, no un cobro real: PSE sigue simulado y cada reserva se marca pagada manualmente.
 
 Los permisos y el esquema de reservas se preparan ejecutando `api/src/core/orm/database/scripts/init-spaces.sql` y luego `api/src/core/orm/database/scripts/init-reservations.sql` en el SQL Editor de Supabase.
+
+### Scroll del panel
+
+El layout del panel conserva el sidebar fijo y asigna el scroll vertical al contenedor común de las rutas bajo el encabezado. Así Discover, Mis reservas, Mis espacios, Usuarios y las demás secciones pueden desplazarse cuando su contenido supera la altura disponible, sin depender del scroll de `body`.
+
+## Favoritos, reseñas y calificaciones
+
+- **Favoritos:** cada tarjeta de Discover tiene un corazón (`FavoriteButton`) para guardar o quitar el espacio. Los guardados se ven en **Mis lugares favoritos** (`/panel/favorite-spaces`). El hook `useFavorites` carga la lista y la mantiene al día sin recargar.
+- **Calificación en tarjetas:** Discover, Mis lugares favoritos y los espacios destacados de la landing muestran el formato compacto `★ 4.0 (127)` (`RatingSummary`). Si el espacio no tiene reseñas, no se muestra nada. En el panel, tocar la calificación abre el detalle y baja directo a las reseñas; en la landing es solo informativa.
+- **Reseñas en el detalle:** la sección `SpaceReviews` muestra el promedio completo `4.0 ★★★★☆ (127)`, el formulario para calificar de 1 a 5 estrellas con comentario opcional (máximo 500 caracteres), la reseña propia con el botón Editar y una vista previa de 3 reseñas de otros usuarios con el botón "Ver todas las reseñas (N)".
+- **Quién puede reseñar:** usuarios con al menos una reserva no cancelada en el espacio; el dueño no puede reseñar su propio espacio. Cada usuario tiene una sola reseña por espacio y puede editarla.
+- **Sin recargar:** al guardar una reseña, la tarjeta de Discover o de Mis lugares favoritos actualiza su promedio de inmediato.
+
+Los permisos de favoritos y reseñas se crean con `api/src/core/orm/database/scripts/init-favorites.sql` e `init-reviews.sql`. Después de correrlos, hay que cerrar sesión y volver a entrar para cargar los permisos nuevos.
 
 ## Integracion de auth
 
@@ -136,7 +187,7 @@ if (hasAuthorities(session, { roles: ['Admin'], permissions: ['CreateUsers'] }))
 ```
 src/
 ├── core/                     # Codigo compartido
-│   ├── components/           # ProtectedRoute, ConnectionWrapper, MapPicker, Table, TabGroup...
+│   ├── components/           # ProtectedRoute, ConnectionWrapper, MapPicker, Table, TabGroup, RatingStars, RatingSummary...
 │   ├── config/               # Configuracion de API, Supabase y Firebase
 │   ├── contexts/             # AuthContext, ThemeContext, NotificationContext
 │   ├── hooks/                # useForm, useLoad, useSync, etc.
@@ -154,9 +205,10 @@ src/
 │   └── panel/                # Panel de administracion
 │       ├── config/               # panel.config.jsx (menu, rutas, permisos)
 │       ├── layouts/              # PanelLayout (sidebar + outlet)
-│       ├── pages/                # Discover, Spaces, MyReservations, Users, Authorization
-│       ├── components/           # Espacios: SpaceRecreationalForm/Detail; reservas: ReservationBooking, ReservationCalendar, SpaceReservations
-│       └── services/             # Requesters de auth, espacios recreativos y reservas
+│       ├── pages/                # Discover, Spaces, MyReservations, FavoriteSpaces, Users, Authorization
+│       ├── components/           # Espacios: SpaceRecreationalForm/Detail; reservas: ReservationBooking, ReservationCalendar, SpaceReservations; FavoriteButton, SpaceReviews
+│       ├── hooks/                # useFavorites
+│       └── services/             # Requesters de auth, espacios, reservas, favoritos y reseñas
 │
 └── main.jsx                  # Entry point, rutas, providers
 ```

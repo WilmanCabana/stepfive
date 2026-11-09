@@ -11,6 +11,8 @@ import ProtectedRoute from './core/components/ProtectedRoute/ProtectedRoute'
 import Authentication from './modules/auth/Authentication'
 import PanelLayout from './modules/panel/layouts/PanelLayout'
 import NotFound from './core/pages/NotFound/NotFound'
+import LandingPage from './modules/landing/LandingPage'
+import { TermsPage, PrivacyPage, ContactPage } from './modules/public-pages/PublicPages'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -21,16 +23,24 @@ createRoot(document.getElementById('root')).render(
             <BrowserRouter>
               <Routes>
 
-                <Route path='*' element={<NotFound />} />
+                <Route path='/' element={<LandingPage />} />
                 <Route path='/auth' element={<Authentication />} />
+                <Route path='/terms' element={<TermsPage />} />
+                <Route path='/privacy' element={<PrivacyPage />} />
+                <Route path='/contact' element={<ContactPage />} />
 
-                <Route path='/' element={<ProtectedRoute authorities={AUTHORITIES.PANEL}><PanelLayout menu={MENU} /></ProtectedRoute>}>
-                  {MENU.map((item) => (
+                <Route path='/panel' element={<ProtectedRoute authorities={AUTHORITIES.PANEL}><PanelLayout menu={MENU} /></ProtectedRoute>}>
+                  {MENU.map((item) => item.isBase ? (
+                    <Route
+                      key={`route-${item.to}`}
+                      index
+                      element={<ProtectedRoute authorities={item.authorities}>{item.element}</ProtectedRoute>}
+                    />
+                  ) : (
                     <Route
                       key={`route-${item.to}`}
                       path={item.path}
                       element={<ProtectedRoute authorities={item.authorities}>{item.element}</ProtectedRoute>}
-                      index={item.to === '/panel'}
                     />
                   ))}
                   {MENU.flatMap((item) =>
@@ -43,6 +53,7 @@ createRoot(document.getElementById('root')).render(
                     ))
                   )}
                 </Route>
+                <Route path='*' element={<NotFound />} />
 
               </Routes>
             </BrowserRouter>

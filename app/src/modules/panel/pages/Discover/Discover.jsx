@@ -1,15 +1,19 @@
 import './Discover.css'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../../core/contexts/AuthContext'
 import Input from '../../../../core/components/Input/Input'
 import Modal from '../../../../core/components/Modal/Modal'
 import Select from '../../../../core/components/Select/Select'
+import Button from '../../../../core/components/Button/Button'
+import Icon from '../../../../core/components/Icon/Icon'
 import SpaceRecreationalCards from '../../components/SpaceRecreationalCards/SpaceRecreationalCards'
 import SpaceRecreationalDetail from '../../components/SpaceRecreationalDetail/SpaceRecreationalDetail'
 import ReservationBooking from '../../components/ReservationBooking/ReservationBooking'
 import { SPACE } from '../../constants/space.constant.mjs'
 import SpaceRecreationalRequester from '../../services/SpaceRecreationalRequester.mjs'
 import Notify from '../../../../core/lib/notify.mjs'
+import useFavorites from '../../hooks/useFavorites'
 
 const PRICE_ORDERS = [
     { key: 'Menor precio', value: 'asc' },
@@ -17,11 +21,14 @@ const PRICE_ORDERS = [
 ]
 
 const Discover = () => {
-    const { session } = useAuth()
+    const { session, hasAuthorities } = useAuth()
+    const navigate = useNavigate()
+    const { canUseFavorites, favoriteIds, toggleFavorite } = useFavorites()
     const [spaces, setSpaces] = useState([])
     const [filters, setFilters] = useState({ type: '', search: '', priceOrder: '' })
     const [selectedSpace, setSelectedSpace] = useState(null)
     const [detailOpen, setDetailOpen] = useState(false)
+    const [focusReviews, setFocusReviews] = useState(false)
     const [bookingOpen, setBookingOpen] = useState(false)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -44,24 +51,47 @@ const Discover = () => {
         .sort((left, right) => filters.priceOrder
             ? (Number(left.pricePerHour) - Number(right.pricePerHour)) * (filters.priceOrder === 'asc' ? 1 : -1)
             : 0)
-    const viewSpace = (space) => { setSelectedSpace(space); setDetailOpen(true) }
+    // reviews = true: abre el detalle y baja directo a la sección de reseñas.
+    const viewSpace = (space, reviews = false) => { setSelectedSpace(space); setFocusReviews(reviews); setDetailOpen(true) }
+    const updateRating = (spaceId, rating) => setSpaces(current => current.map(space => space.id === spaceId ? { ...space, ...rating } : space))
     const bookSpace = (space = selectedSpace) => {
         setSelectedSpace(space)
         setDetailOpen(false)
         setBookingOpen(true)
     }
-    const canReserveSelected = selectedSpace?.ownerId !== session?.user?.id
+    const isOwnerSelected = selectedSpace?.ownerId != null
+        && session?.user?.id != null
+        && String(selectedSpace.ownerId) === String(session.user.id)
+    const canReserveSelected = !isOwnerSelected
+    const canPublishSpace = hasAuthorities(session, { permissions: ['AccessSpaces', 'CreateSpaces'] })
 
     return <div className='lx-p-discover'>
         <header className='lx-p-discover-head'>
-            <div>
-                <p>Espacios recreativos</p>
-                <h1>Descubre espacios en Santa Marta</h1>
+            <div className='lx-p-discover-intro'>
+                <div>
+                    <p>Espacios recreativos</p>
+                    <h1>Descubre espacios en Santa Marta</h1>
+                </div>
+                {canPublishSpace && <div className='lx-p-discover-publish'>
+                    <p>¿Tienes un espacio? ¡Publícalo y empieza a recibir reservas!</p>
+                    <Button size='s' onClick={() => navigate('/panel/space-recreationals')}>
+                        <Icon name='add_business' />Publicar mi espacio
+                    </Button>
+                </div>}
             </div>
             <div className='lx-p-discover-filters'>
-                <Select id='discover-type' name='type' label='Tipo de espacio' value={filters.type} onChange={updateFilter('type')} options={SPACE.OPTIONS.TYPES} />
-                <Input id='discover-search' name='search' label='Buscar por nombre' value={filters.search} onChange={updateFilter('search')} />
-                <Select id='discover-price-order' name='priceOrder' label='Ordenar por precio' value={filters.priceOrder} onChange={updateFilter('priceOrder')} options={PRICE_ORDERS} />
+                <div className='lx-p-discover-filter'>
+                    <span className='material-symbols-rounded' aria-hidden='true'>search</span>
+                    <Input id='discover-search' name='search' label='Buscar por nombre' value={filters.search} onChange={updateFilter('search')} />
+                </div>
+                <div className='lx-p-discover-filter'>
+                    <span className='material-symbols-rounded' aria-hidden='true'>category</span>
+                    <Select id='discover-type' name='type' label='Tipo de espacio' value={filters.type} onChange={updateFilter('type')} options={SPACE.OPTIONS.TYPES} />
+                </div>
+                <div className='lx-p-discover-filter'>
+                    <span className='material-symbols-rounded' aria-hidden='true'>sort</span>
+                    <Select id='discover-price-order' name='priceOrder' label='Ordenar por precio' value={filters.priceOrder} onChange={updateFilter('priceOrder')} options={PRICE_ORDERS} />
+                </div>
             </div>
         </header>
         {error && <p className='lx-p-discover-message --error' role='alert'>{error}</p>}
@@ -70,24 +100,30 @@ const Discover = () => {
             : <SpaceRecreationalCards
                 spaces={visibleSpaces}
                 currentUserId={session?.user?.id}
-                onView={viewSpace}
+                onView={space => viewSpace(space)}
+                onViewReviews={space => viewSpace(space, true)}
                 onReserve={bookSpace}
+                favoriteIds={favoriteIds}
+                onToggleFavorite={canUseFavorites ? toggleFavorite : undefined}
                 emptyMessage='No encontramos espacios que coincidan con tu búsqueda.'
             />}
-        <Modal show={detailOpen} title='Detalle del espacio' size='large' position='right' onClose={() => setDetailOpen(false)}>
+        <Modal show={detailOpen} title='Detalle del espacio' size='full' position='center' className='lx-c-modal-space-detail' onClose={() => setDetailOpen(false)}>
             <SpaceRecreationalDetail
                 space={selectedSpace}
                 onClose={() => setDetailOpen(false)}
+                focusReviews={focusReviews}
                 onReserve={canReserveSelected ? () => bookSpace() : undefined}
+                onRatingChange={updateRating}
+                showPresentationPanel
             />
         </Modal>
         <Modal show={bookingOpen} title='Reservar espacio' size='large' position='right' onClose={() => setBookingOpen(false)}>
             {selectedSpace && <ReservationBooking
                 space={selectedSpace}
                 onCancel={() => setBookingOpen(false)}
-                onCreated={() => {
+                onCreated={({ reservations = [] } = {}) => {
                     setBookingOpen(false)
-                    Notify.notice('Reserva creada y pagada.', 'success')
+                    Notify.notice(reservations.length === 1 ? 'Reserva creada y pagada.' : 'Reservas creadas y pagadas.', 'success')
                 }}
             />}
         </Modal>

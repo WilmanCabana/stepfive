@@ -1,4 +1,5 @@
 import './UserSessionCard.css'
+import PropTypes from 'prop-types'
 import Button from '../../../../core/components/Button/Button'
 import { useAuth } from '../../../../core/contexts/AuthContext'
 import { dateCountdown } from '../../../../core/utils/dateCountdown.mjs'
@@ -81,23 +82,33 @@ const UserSessionCard = ({ onClose = () => { } }) => {
         </div>
 
         <div className='lx-c-user-session-card-content-info'>
-          {fields.map(({ label, value }) => (
+          {fields.filter(({ label }) => label !== 'Estado').map(({ label, value }) => (
             <div className='lx-c-user-session-card-content-info-item' key={label}>
               <div className='lx-c-user-session-card-content-info-item-key'>{label}</div>
               <div className='lx-c-user-session-card-content-info-item-value'>{value}</div>
             </div>
           ))}
 
-                  <Button size='s' color='danger' radius='full' variant='dimed' onClick={signOut}>
-          <span className='material-symbols-rounded' translate='no'>logout</span> Cerrar sesión
-        </Button>
+          <div className='lx-c-user-session-card-content-info-actions'>
+            <div className='lx-c-user-session-card-content-info-item'>
+              <div className='lx-c-user-session-card-content-info-item-key'>Estado</div>
+              <div className='lx-c-user-session-card-content-info-item-value'>Activo</div>
+            </div>
+            <Button size='s' color='danger' radius='full' variant='dimed' onClick={signOut}>
+              <span className='material-symbols-rounded' translate='no'>logout</span> Cerrar sesión
+            </Button>
+          </div>
         </div>
 
 
-        {createdAt && <p className='lx-c-user-session-card-created-at'>{dateCountdown(new Date(createdAt))}</p>}
+        {createdAt && <p className='lx-c-user-session-card-created-at'>Miembro desde {dateCountdown(new Date(createdAt)).toLowerCase()}</p>}
       </div>
     </div>
   )
+}
+
+UserSessionCard.propTypes = {
+  onClose: PropTypes.func,
 }
 
 export default UserSessionCard

@@ -22,6 +22,8 @@ const SpaceRecreationals = () => {
     const [spaces, setSpaces] = useState([])
     const [mode, setMode] = useState(null)
     const [selectedSpace, setSelectedSpace] = useState(null)
+    const [focusReviews, setFocusReviews] = useState(false)
+    const [commissionNoticeOpen, setCommissionNoticeOpen] = useState(false)
     const [tab, setTab] = useState('cards')
     const { loading, withLoad } = useLoad(true)
     const isAdmin = user?.roles?.includes('Admin')
@@ -36,14 +38,15 @@ const SpaceRecreationals = () => {
 
     useEffect(() => { load() }, [load])
 
-    const reset = () => { setMode(null); setSelectedSpace(null) }
-    const open = (nextMode, space = null) => { setSelectedSpace(space); setMode(nextMode) }
+    const reset = () => { setMode(null); setSelectedSpace(null); setFocusReviews(false) }
+    const open = (nextMode, space = null, reviews = false) => { setSelectedSpace(space); setFocusReviews(reviews); setMode(nextMode) }
 
     const save = async (data) => {
         const result = selectedSpace
             ? await SpaceRecreationalRequester.updateSpace({ ...data, id: selectedSpace.id })
             : await SpaceRecreationalRequester.createSpace(data)
-        if (result) { setSpaces(current => selectedSpace ? current.map(item => item.id === result.id ? result : item) : [result, ...current]); reset() }
+        if (result) { setSpaces(current => selectedSpace ? current.map(item => item.id === result.id ? result : item) : [result, ...current]); reset(); return true }
+        return false
     }
 
     const remove = (space) => open('delete', space)
@@ -56,20 +59,29 @@ const SpaceRecreationals = () => {
         <Loader loading={loading} background='special' />
         <header className='lx-p-spaces-header'>
             <div className='info'><h1 className='--name'>Espacios recreativos</h1><p className='--description'>Administra canchas sintéticas y salones de eventos en Santa Marta</p><div className='--overview'><div className='summary'>{spaces.length} espacios registrados</div></div></div>
-            {canCreate && <div className='actions'><Button onClick={() => open('form')}><Icon name='add' />Nuevo espacio</Button></div>}
+            {canCreate && <div className='actions'><Button onClick={() => setCommissionNoticeOpen(true)}><Icon name='add' />Nuevo espacio</Button></div>}
         </header>
         <div className='lx-p-spaces-content'>
             <div className='lx-p-spaces-actions'><TabGroup tabs={[<>Tarjetas <Icon name='square' /></>, <>Tabla <Icon name='table' /></>, <>Reservas <Icon name='calendar_month' /></>]} options={['cards', 'table', 'reservations']} onClick={setTab} activeIndex={['cards', 'table', 'reservations'].indexOf(tab)} /></div>
             <div className='lx-p-spaces-container'>
-                {tab === 'cards' && <div className='lx-p-spaces-cards'><InputSearch context='.lx-c-space-recreationals' element='.lx-space-card' /><SpaceRecreationalCards spaces={spaces} onView={item => open('detail', item)} onEdit={canUpdate ? item => open('form', item) : null} onDelete={canDelete ? remove : null} /></div>}
+                {tab === 'cards' && <div className='lx-p-spaces-cards'><InputSearch context='.lx-c-space-recreationals' element='.lx-space-card' /><SpaceRecreationalCards spaces={spaces} onView={item => open('detail', item)} onViewReviews={item => open('detail', item, true)} onEdit={canUpdate ? item => open('form', item) : null} onDelete={canDelete ? remove : null} /></div>}
                 {tab === 'table' && <div className='lx-p-spaces-table'><SpaceRecreationalTable spaces={spaces} onView={item => open('detail', item)} onEdit={canUpdate ? item => open('form', item) : null} onDelete={canDelete ? remove : null} /></div>}
                 {tab === 'reservations' && <SpaceReservations />}
             </div>
         </div>
         <Footer />
-        <Modal show={mode === 'detail'} title='Detalle del espacio' size='large' position='right' onClose={reset}><SpaceRecreationalDetail space={selectedSpace} onEdit={canUpdate ? item => open('form', item) : null} onDelete={canDelete ? remove : null} onVerified={onVerified} onClose={reset} canVerify={canVerify} /></Modal>
+        <Modal show={mode === 'detail'} title='Detalle del espacio' size='large' position='right' onClose={reset}><SpaceRecreationalDetail space={selectedSpace} focusReviews={focusReviews} onEdit={canUpdate ? item => open('form', item) : null} onDelete={canDelete ? remove : null} onVerified={onVerified} onClose={reset} canVerify={canVerify} /></Modal>
         <Modal show={mode === 'form'} title={selectedSpace ? 'Editar espacio recreativo' : 'Nuevo espacio recreativo'} size='large' position='right' onClose={reset}><SpaceRecreationalForm space={selectedSpace} onSubmit={save} onCancel={reset} /></Modal>
         <Modal show={mode === 'delete'} title='Eliminar espacio recreativo' size='min' position='center' onClose={reset}><SpaceRecreationalDeleteForm space={selectedSpace} onCancel={reset} handler={onDeleted} /></Modal>
+        <Modal show={commissionNoticeOpen} title='Aviso importante' size='standar' position='center' onClose={() => setCommissionNoticeOpen(false)}>
+            <div className='lx-p-spaces-commission-notice'>
+                <p>Aviso importante: Stepfive cobrará una comisión del 14% sobre el valor de cada transacción o reserva realizada en tu espacio. Al continuar, aceptas estos términos.</p>
+                <div className='lx-p-spaces-commission-actions'>
+                    <Button variant='bordered' onClick={() => setCommissionNoticeOpen(false)}>Cancelar</Button>
+                    <Button onClick={() => { setCommissionNoticeOpen(false); open('form') }}>Entendido / Continuar</Button>
+                </div>
+            </div>
+        </Modal>
     </div>
 }
 
