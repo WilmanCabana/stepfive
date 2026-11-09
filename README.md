@@ -13,6 +13,8 @@ Monorepo fullstack compuesto por un backend REST en **Node.js + TypeScript + Exp
 - **Registro y Leads:** el registro incluye la aceptación de los términos, la política de privacidad y el tratamiento de datos para que los dueños puedan contactar a posibles clientes con fines comerciales.
 - **Lugares favoritos:** los usuarios pueden marcar espacios con un corazón desde Discover y consultarlos en la sección *Mis lugares favoritos* del panel.
 - **Reseñas y calificaciones:** quien reservó un espacio puede calificarlo de 1 a 5 estrellas con un comentario opcional (una reseña editable por usuario). Las tarjetas muestran ★ 4.0 (127) y el detalle el promedio con la lista de reseñas; los espacios sin reseñas no muestran estrellas.
+- **Reservas múltiples:** el usuario puede seleccionar varias franjas —incluidas fechas distintas— en un carrito temporal y confirmar el conjunto en una sola acción; el backend las crea de forma atómica.
+- **Publicación de espacios:** antes de iniciar la creación, se informa que Stepfive cobrará una comisión del 14% sobre cada transacción o reserva realizada en el espacio.
 - **Branding Stepfive:** identidad visual de la cabeza de lobo mediante un logo SVG adaptable al tema claro/oscuro.
 
 Las reservas usan PSE como método registrado, pero por ahora no hay una pasarela de pago real: la confirmación se marca manualmente. También incluye un timeline de reservas para cada usuario y un calendario de reservas recibidas para los dueños.
@@ -27,15 +29,17 @@ Las reservas usan PSE como método registrado, pero por ahora no hay una pasarel
 - Proteger rutas del frontend por roles y permisos.
 - Tema claro/oscuro.
 - Landing Page pública para clientes y propietarios de espacios.
+- Explorar espacios destacados y abrir su detalle desde la Landing Page pública, sin iniciar sesión; el acceso se solicita al intentar reservar.
 - Páginas públicas de términos (`/terms`), privacidad (`/privacy`) y contacto (`/contact`), implementadas en [PublicPages.jsx](./app/src/modules/public-pages/PublicPages.jsx).
 - Registrar y gestionar espacios recreativos: canchas sintéticas y salones de eventos.
 - Consultar en Discover los espacios aprobados con filtros, tarjetas visuales y detalles mejorados.
-- Reservar espacios disponibles con PSE registrado; el pago se confirma manualmente y no usa una pasarela real.
+- Reservar una o varias franjas disponibles de un mismo espacio en una operación atómica; el pago se registra manualmente y no usa una pasarela real.
 - Subir portada, galería e inclusive un video de presentación (MP4/WebM, máximo 20 MB) de espacios a Supabase Storage.
 - Consultar las reservas propias en formato timeline.
 - Consultar en un calendario las reservas recibidas de los espacios del dueño.
 - Marcar espacios como favoritos desde Discover y verlos en *Mis lugares favoritos*.
 - Calificar y reseñar los espacios reservados; ver el promedio en las tarjetas y las reseñas en el detalle.
+- Interfaz rediseñada con principios y leyes UX: jerarquía clara, controles consistentes, calificaciones destacadas y flujos simplificados.
 
 ## Requisitos previos
 
@@ -62,18 +66,20 @@ cp api/.env.example api/.env
 cp app/.env.example app/.env
 # Edita app/.env con la URL del backend
 
-# 4. Configurar Supabase para espacios y reservas
+# 4. Configurar Supabase para espacios, reservas, favoritos y reseñas
 # Primero inicia la API una vez para que el ORM sincronice las tablas; luego detenla.
 # En Storage, crea el bucket público `space-images`.
 # Permite los tipos image/png, image/jpeg, image/webp, video/mp4 y video/webm.
 # Para videos, configura un límite de tamaño de al menos 20 MB.
-# En SQL Editor ejecuta, en este orden:
+# En SQL Editor ejecuta los scripts SQL mantenidos por el equipo, en este orden:
 # api/src/core/orm/database/scripts/init.sql
 # api/src/core/orm/database/scripts/init-spaces.sql
 # api/src/core/orm/database/scripts/init-reservations.sql
 # api/src/core/orm/database/scripts/init-favorites.sql
 # api/src/core/orm/database/scripts/init-reviews.sql
-# api/src/core/orm/database/scripts/alter-spaces-video.sql (si la columna presentationVideo aún no existe)
+# api/src/core/orm/database/scripts/alter-spaces-video.sql
+# Este último script agrega presentationVideo para instalaciones existentes;
+# ejecútalo solo si esa columna aún no existe.
 # Configura estas variables en app/.env:
 # VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 # VITE_SUPABASE_ANON_KEY=<anon-key>
